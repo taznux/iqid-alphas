@@ -105,7 +105,7 @@ def assemble_stack(imdir=None, fformat='tif', pad=False):
 def assemble_stack_hne(imdir=None, fformat='tif', color=(0, 0, 0), pad=True):
     data_path = os.path.join('.', imdir)
     fileList = glob.glob(os.path.join(data_path, '*.' + fformat))
-    fileList.sort(key=iq.natural_keys)
+    fileList.sort(key=helper.natural_keys)
 
     if pad:
         temp = np.zeros((len(fileList), 2))
@@ -376,12 +376,16 @@ def coarse_rotation(mov, ref, deg=2, interpolation=0, gauss=5, preserve_range=Tr
         mov = recenter_im(mov)
         ref = recenter_im(ref)
 
+    # Convert to float32 for GaussianBlur compatibility
+    mov_for_blur = mov.astype(np.float32)
+    ref_for_blur = ref.astype(np.float32)
+
     if gauss:
-        gmov = cv2.GaussianBlur(mov, (gauss, gauss), 0)
-        gref = cv2.GaussianBlur(ref, (gauss, gauss), 0)
+        gmov = cv2.GaussianBlur(mov_for_blur, (gauss, gauss), 0)
+        gref = cv2.GaussianBlur(ref_for_blur, (gauss, gauss), 0)
     else:
-        gmov = mov
-        gref = ref
+        gmov = mov_for_blur
+        gref = ref_for_blur
 
     num_measurements = int(np.floor(360/deg))
     SSD = np.zeros(num_measurements)
