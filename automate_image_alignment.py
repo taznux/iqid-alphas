@@ -4,7 +4,7 @@ import logging
 import argparse
 import numpy as np
 from skimage import io
-from iqid.align import assemble_stack, coarse_stack, pad_stack_he, crop_down
+from iqid.align import assemble_stack, assemble_stack_hne, coarse_stack, pad_stack_he, crop_down
 
 # Configure logging
 logging.basicConfig(filename='automate_image_alignment.log', level=logging.INFO,
