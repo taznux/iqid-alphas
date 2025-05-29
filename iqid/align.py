@@ -105,7 +105,7 @@ def assemble_stack(imdir=None, fformat='tif', pad=False):
 def assemble_stack_hne(imdir=None, fformat='tif', color=(0, 0, 0), pad=True):
     data_path = os.path.join('.', imdir)
     fileList = glob.glob(os.path.join(data_path, '*.' + fformat))
-    fileList.sort(key=iq.natural_keys)
+    fileList.sort(key=helper.natural_keys)
 
     if pad:
         temp = np.zeros((len(fileList), 2))
