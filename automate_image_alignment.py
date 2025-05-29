@@ -13,7 +13,7 @@ logging.basicConfig(filename='automate_image_alignment.log', level=logging.INFO,
 def align_and_register_images(image_dir, output_dir, fformat='tif', pad=False, deg=2, avg_over=1, subpx=1, color=(0, 0, 0)):
     try:
         # Assemble image stack
-        image_stack = assemble_stack(imdir=image_dir, fformat=fformat, pad=pad)
+        image_stack = assemble_stack_hne(imdir=image_dir, fformat=fformat, color=color, pad=True)
         
         # Coarse align image stack
         aligned_stack = coarse_stack(image_stack, deg=deg, avg_over=avg_over)
