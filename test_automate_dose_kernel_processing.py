@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import unittest
-from automate_dose_kernel_processing import process_dose_kernels, save_processed_kernels
+from automate_dose_kernel_processing import process_dose_kernels, save_processed_kernels, main
 from iqid.dpk import load_txt_kernel, mev_to_mgy, radial_avg_kernel, pad_kernel_to_vsize
 
 class TestAutomateDoseKernelProcessing(unittest.TestCase):
@@ -46,6 +46,11 @@ class TestAutomateDoseKernelProcessing(unittest.TestCase):
         kernel = np.zeros((128, 128, 128))
         padded_kernel = pad_kernel_to_vsize(kernel, self.vox_xy, self.slice_z)
         self.assertIsNotNone(padded_kernel)
+
+    def test_main(self):
+        main()
+        self.assertTrue(os.path.exists(self.output_dir))
+        self.assertTrue(os.path.exists(os.path.join(self.output_dir, 'processed_kernel.npy')))
 
 if __name__ == '__main__':
     unittest.main()

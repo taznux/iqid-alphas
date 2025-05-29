@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import unittest
-from automate_processing import load_and_process_listmode_data, filter_correct_analyze_data, generate_spatial_images, generate_temporal_information, detect_contours_extract_ROIs, save_processed_data
+from automate_processing import load_and_process_listmode_data, filter_correct_analyze_data, generate_spatial_images, generate_temporal_information, detect_contours_extract_ROIs, save_processed_data, main
 
 class TestAutomateProcessing(unittest.TestCase):
 
@@ -48,6 +48,14 @@ class TestAutomateProcessing(unittest.TestCase):
 
     def test_save_processed_data(self):
         save_processed_data(self.cluster_data, self.output_dir)
+        self.assertTrue(os.path.exists(self.output_dir))
+        self.assertTrue(os.path.exists(os.path.join(self.output_dir, 'xC.npy')))
+        self.assertTrue(os.path.exists(os.path.join(self.output_dir, 'yC.npy')))
+        self.assertTrue(os.path.exists(os.path.join(self.output_dir, 'f.npy')))
+        self.assertTrue(os.path.exists(os.path.join(self.output_dir, 'time_ms.npy')))
+
+    def test_main(self):
+        main()
         self.assertTrue(os.path.exists(self.output_dir))
         self.assertTrue(os.path.exists(os.path.join(self.output_dir, 'xC.npy')))
         self.assertTrue(os.path.exists(os.path.join(self.output_dir, 'yC.npy')))
