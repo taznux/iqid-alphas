@@ -57,7 +57,6 @@ def main(image_dir, output_dir): # fformat, pad, deg etc. are loaded from config
         subpx = config_params.get('subpx', 1) # Kept for signature, though not used by assemble_stack_hne
         color = tuple(config_params.get('color', [0, 0, 0]))
 
-
         align_and_register_images(image_dir, output_dir, fformat, deg, avg_over, subpx, color, convert_to_grayscale_for_ssd=True)
     except Exception as e:
         logging.error(f"Failed to complete main image alignment for {image_dir}: {str(e)}", exc_info=True)
@@ -73,4 +72,4 @@ if __name__ == "__main__":
 
     # Call main with the parsed command-line arguments for image_dir and output_dir
     # Other parameters will still be loaded from config.json within main() for now
-    main(args.image_dir, args.output_dir) # Parameters like fformat, deg, etc., will be loaded from config inside main
+    main(args.image_dir, args.output_dir)
