@@ -336,7 +336,7 @@ def get_SSD(im1, im2):
     return (SSD)
 
 
-def coarse_rotation(mov, ref, deg=2, interpolation=0, gauss=5, preserve_range=True, recenter=False):
+def coarse_rotation(mov, ref, deg=2, interpolation=0, gauss=5, preserve_range=True, recenter=False, convert_to_grayscale_for_ssd=False):
     """Coarse rotation of an image to minimize SSD (MSE) compared to reference.
 
     Brute-force method that checks the SSD between the reference image (ref)
