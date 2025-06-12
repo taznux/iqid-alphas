@@ -51,11 +51,11 @@ iqid-alphas/ (main project directory)
   - check_dependencies.py   - setup script for checking Python dependencies. 
                               See Installation section above.
   - iqid/ (Python source code)
-    - process_object.py (processing iQID listmode data)
-    - align.py (alignment and registration)
-    - dpk.py (dose kernel and DPK convolution)
-    - helper.py (miscellaneous helper functions for plotting, calculations, etc)
-    - spec.py (gamma spectroscopy)
+    - `process_object.py`: Handles import, processing, and analysis of iQID listmode data.
+    - `align.py`: Provides functions for image stack alignment, registration, and geometric transformations.
+    - `dpk.py`: Contains functions for dose kernel loading, manipulation, and convolution.
+    - `helper.py`: Includes various utility functions for file operations, sorting, calculations, and plotting.
+    - `spec.py`: Offers tools for gamma spectroscopy analysis, including peak finding and calibration.
   - demo_notebooks/ (demo Jupyter notebook tutorials)
     - Please use these as templates for your own analysis if you like.
     - Please explore the rest of the source code, as not everything is represented by the tutorials.
@@ -70,33 +70,49 @@ iqid-alphas/ (main project directory)
       make one copy of the notebooks for viewing and another to experiment using your own data.
     - Please contact the authors if you would like to request access to the data.
 
-## New Automation Scripts
-The repository now includes three new automation scripts to streamline the processing of listmode data, image alignment, and dose kernel processing:
+## Automation Pipeline
+The repository includes three automation scripts to streamline the processing of listmode data, image alignment, and dose kernel processing:
+- `automate_processing.py`
+- `automate_image_alignment.py`
+- `automate_dose_kernel_processing.py`
 
-1. `automate_processing.py`:
-   - Automates loading and processing of listmode data using functions in `iqid/process_object.py`.
-   - Uses `ClusterData` class to load and process data, implements functions to filter, correct, and analyze data.
-   - Automates generation of spatial images and temporal information using `image_from_listmode` and `image_from_big_listmode` methods.
-   - Implements automated contour detection and ROI extraction using `get_contours` and `get_ROIs` methods.
-   - Saves processed data and results in a structured format for further analysis.
+### Running the Automation Pipeline
+The pipeline is primarily configured using the `config.json` file. Detailed information on the pipeline logic, expected input file structures, and configuration parameters can be found in `ucsf_ac225_iqid_processing_plan.md`.
 
-2. `automate_image_alignment.py`:
-   - Automates alignment and registration of images using functions in `iqid/align.py`.
-   - Uses `assemble_stack` and `coarse_stack` functions to create and align image stacks.
-   - Implements automated padding and cropping of images using `pad_stack_he` and `crop_down` functions.
-   - Automates generation of registered image stacks and saves results in a structured format for further analysis.
+**1. Configuration (`config.json`):**
+Before running any automation scripts, the `config.json` file must be properly configured with paths to your data, output directories, and various processing parameters.
+**See `config_documentation.md` for a detailed explanation of all configuration parameters.** (This file will be added in a future update).
 
-3. `automate_dose_kernel_processing.py`:
-   - Automates processing of dose kernels and convolution using functions in `iqid/dpk.py`.
-   - Uses `load_txt_kernel` and `mev_to_mgy` functions to load and convert dose kernels.
-   - Implements automated radial averaging and padding of kernels using `radial_avg_kernel` and `pad_kernel_to_vsize` functions.
-   - Automates convolution of dose kernels with activity image stacks and saves results in a structured format for further analysis.
+**2. Executing the Scripts:**
+
+*   **`automate_processing.py`**:
+    *   **Purpose:** Automates loading and initial processing of iQID listmode data.
+    *   **Usage:** `python automate_processing.py`
+    *   All parameters are read from the `automate_processing` section of `config.json`.
+    *   **Outputs:** Processed data arrays (e.g., coordinates, frame numbers) saved in the specified output directory.
+
+*   **`automate_image_alignment.py`**:
+    *   **Purpose:** Automates alignment and registration of image stacks (e.g., histology images).
+    *   **Usage:** `python automate_image_alignment.py <image_dir> <output_dir>`
+        *   `<image_dir>`: Directory containing the sequence of images to be aligned.
+        *   `<output_dir>`: Directory where the aligned image stack will be saved.
+    *   These two directory paths are provided as command-line arguments. Other parameters (like alignment algorithm settings, file formats) are read from the `automate_image_alignment` section of `config.json`.
+    *   **Outputs:** Registered image stack saved in the specified output directory.
+
+*   **`automate_dose_kernel_processing.py`**:
+    *   **Purpose:** Automates the processing of dose point kernels (DPKs).
+    *   **Usage:** `python automate_dose_kernel_processing.py`
+    *   All parameters are read from the `automate_dose_kernel_processing` section of `config.json`.
+    *   **Outputs:** Processed dose kernel (e.g., `processed_kernel.npy`) saved in the specified output directory.
+
+**3. Logging:**
+Each automation script generates a log file (e.g., `automate_processing.log`, `automate_image_alignment.log`, `automate_dose_kernel_processing.log`) in the same directory where the script is run. These logs detail the operations performed, any warnings, and errors encountered during execution.
 
 ## Centralized Configuration Management
-A centralized configuration management system using JSON has been added to manage configuration parameters across the three automation scripts. The `config.json` file stores input/output paths, processing thresholds, and kernel sizes. The automation scripts have been updated to read configuration parameters from `config.json`.
+A centralized configuration management system using `config.json` has been implemented to manage parameters across the three automation scripts. This file stores input/output paths, processing thresholds, kernel parameters, and other settings. The automation scripts read their respective configurations from this file. For detailed guidance on configuring `config.json`, please refer to `config_documentation.md`.
 
 ## Robust Error Handling and Logging
-Robust error handling and logging have been implemented in each automation script using Python's `logging` module. This provides clear, actionable insights into script execution, warnings, and errors. Error handling has been added for missing input files, corrupted data, and failed computational steps. Example log message for a failed processing step: `logger.error("Failed to process file %s: %s", filename, str(e))`.
+Robust error handling using `try-except` blocks has been implemented in each automation script. Python's `logging` module is used to provide clear, actionable insights into script execution, warnings, and errors, with logs saved to files like `automate_script_name.log`. This includes handling for issues such as missing input files, corrupted data, and failed computational steps.
 
 ## Performance Optimization
 Performance bottlenecks in `iqid/process_object.py`, `iqid/align.py`, and `iqid/dpk.py` have been identified. Optimization techniques such as parallel processing, lazy loading, and optimized data structures have been suggested to improve performance.
