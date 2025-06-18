@@ -47,4 +47,6 @@ data*
 logs
 intermediate
 *.log
+*.tif
+*.jpg
 
