@@ -21,10 +21,12 @@ try:
     from skimage import io, filters, exposure, transform
     from scipy import ndimage
     import matplotlib.pyplot as plt
+    from PIL import Image
+    import tifffile
     HAS_IMAGING = True
 except ImportError:
     HAS_IMAGING = False
-    print("Warning: Imaging libraries not available. Install with: pip install scikit-image scipy matplotlib")
+    print("Warning: Imaging libraries not available. Install with: pip install scikit-image scipy matplotlib pillow tifffile")
 
 
 class IQIDProcessor:
@@ -80,7 +82,10 @@ class IQIDProcessor:
     
     def load_image(self, image_path: str, key: str = 'main') -> np.ndarray:
         """
-        Load an image from file.
+        Load an image from file with smart format detection.
+        
+        Automatically detects file format regardless of extension and uses
+        the most appropriate loader.
         
         Parameters
         ----------
@@ -98,9 +103,10 @@ class IQIDProcessor:
             raise ImportError("Imaging libraries not available")
             
         try:
-            image = io.imread(image_path)
+            # Use smart loading with format detection
+            image = self._load_image_smart(image_path)
             self.images[key] = image
-            print(f"Loaded image: {image.shape} from {image_path}")
+            print(f"Smart loaded image: {image.shape} from {os.path.basename(image_path)}")
             return image
         except Exception as e:
             raise FileNotFoundError(f"Could not load image from {image_path}: {e}")
@@ -376,7 +382,105 @@ class IQIDProcessor:
             processed = exposure.equalize_adapthist(processed)
         
         return processed
-
+    
+    def _detect_file_format(self, file_path: str) -> str:
+        """
+        Detect actual file format by reading file header.
+        
+        Parameters
+        ----------
+        file_path : str
+            Path to the file
+            
+        Returns
+        -------
+        str
+            Detected format ('PNG', 'JPEG', 'TIFF', 'UNKNOWN')
+        """
+        try:
+            with open(file_path, 'rb') as f:
+                header = f.read(16)
+            
+            # Check file signatures
+            if header.startswith(b'\x89PNG\r\n\x1a\n'):
+                return 'PNG'
+            elif header.startswith(b'\xff\xd8\xff'):
+                return 'JPEG'
+            elif header.startswith(b'GIF8'):
+                return 'GIF'
+            elif header.startswith(b'BM'):
+                return 'BMP'
+            elif header.startswith(b'II*\x00') or header.startswith(b'MM\x00*'):
+                return 'TIFF'
+            elif header.startswith(b'RIFF') and b'WEBP' in header:
+                return 'WEBP'
+            else:
+                return 'UNKNOWN'
+                
+        except Exception:
+            return 'ERROR'
+    
+    def _load_image_smart(self, image_path: str) -> np.ndarray:
+        """
+        Load image with smart format detection and appropriate loader.
+        
+        Parameters
+        ----------
+        image_path : str
+            Path to the image file
+            
+        Returns
+        -------
+        np.ndarray
+            Loaded image array
+        """
+        actual_format = self._detect_file_format(image_path)
+        file_extension = os.path.splitext(image_path)[1].lower()
+        
+        # Log format detection if mismatch
+        if actual_format != 'UNKNOWN':
+            expected_exts = {
+                'PNG': '.png', 'JPEG': '.jpg', 'GIF': '.gif', 
+                'BMP': '.bmp', 'TIFF': '.tif', 'WEBP': '.webp'
+            }
+            if actual_format in expected_exts and file_extension != expected_exts[actual_format]:
+                print(f"Format mismatch detected: {file_extension} extension but {actual_format} format")
+        
+        # Strategy 1: Use format-appropriate loader
+        if actual_format in ['PNG', 'JPEG', 'GIF', 'BMP', 'WEBP']:
+            try:
+                img = Image.open(image_path)
+                img_array = np.array(img)
+                print(f"Loaded with PIL (format-aware): {img_array.shape} {img_array.dtype}")
+                return img_array
+            except Exception as e:
+                print(f"PIL loader failed: {e}, trying fallback...")
+        
+        elif actual_format == 'TIFF':
+            try:
+                img_array = tifffile.imread(image_path)
+                print(f"Loaded with tifffile: {img_array.shape} {img_array.dtype}")
+                return img_array
+            except Exception as e:
+                print(f"tifffile loader failed: {e}, trying fallback...")
+        
+        # Strategy 2: Fallback to PIL (most versatile)
+        try:
+            img = Image.open(image_path)
+            img_array = np.array(img)
+            print(f"Loaded with PIL (fallback): {img_array.shape} {img_array.dtype}")
+            return img_array
+        except Exception as e:
+            print(f"PIL fallback failed: {e}, trying skimage...")
+        
+        # Strategy 3: Last resort - skimage
+        try:
+            img_array = io.imread(image_path)
+            print(f"Loaded with skimage (last resort): {img_array.shape} {img_array.dtype}")
+            return img_array
+        except Exception as e:
+            raise FileNotFoundError(f"All loaders failed for {image_path}: {e}")
+        
 def quick_process(image_path: str, output_dir: str = None) -> Dict[str, Any]:
     """
     Quick processing function for single images.
