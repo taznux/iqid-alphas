@@ -64,7 +64,8 @@ class AdvancedPipeline:
                 'activity_method': 'otsu',
                 'min_tissue_area': 500,
                 'min_activity_area': 50,
-                'morphological_cleanup': True
+                'morphological_cleanup': False,  # Disable aggressive cleanup to preserve blobs
+                'preserve_blobs': True          # Add blob preservation setting
             },
             'analysis': {
                 'calculate_statistics': True,

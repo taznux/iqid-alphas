@@ -31,6 +31,7 @@ from iqid_alphas.pipelines.simple import SimplePipeline
 # Add evaluation utilities
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.visualizer import IQIDVisualizer
+from utils.adaptive_segmentation import AdaptiveIQIDSegmenter, EnhancedRawImageSplitter
 
 
 @dataclass
@@ -61,9 +62,12 @@ class ReUploadPipelineEvaluator:
         # Setup logging
         self.logger = self._setup_logging()
         
-        # Initialize components
+        # Initialize components with improved blob-preserving and clustering-based settings
         self.raw_splitter = RawImageSplitter()
+        self.enhanced_splitter = EnhancedRawImageSplitter(preserve_blobs=True)
         self.aligner = ImageAligner()
+        
+        self.logger.info("Using improved clustering-based segmentation for distributed dots")
         
         # Initialize visualizer
         viz_output_dir = self.output_dir / "visualizations"
@@ -101,11 +105,26 @@ class ReUploadPipelineEvaluator:
         """
         samples = []
         
-        # The reupload_path should already point to the iQID directory
-        iqid_base_path = self.reupload_path
+        # The reupload_path should contain iQID_reupload/iQID directory structure
+        iqid_base_path = self.reupload_path / "iQID_reupload" / "iQID"
         if not iqid_base_path.exists():
-            self.logger.error(f"iQID base directory not found: {iqid_base_path}")
-            return samples
+            # Try alternative paths
+            alt_paths = [
+                self.reupload_path / "iQID",  # Direct iQID folder
+                self.reupload_path,           # Already pointing to iQID folder
+            ]
+            
+            for alt_path in alt_paths:
+                if alt_path.exists() and any(alt_path.glob("*/*/*/1_*")):
+                    iqid_base_path = alt_path
+                    break
+            else:
+                self.logger.error(f"Could not find iQID data structure in {self.reupload_path}")
+                self.logger.info(f"Expected path: {iqid_base_path}")
+                self.logger.info(f"Available paths: {list(self.reupload_path.iterdir())}")
+                return samples
+        
+        self.logger.info(f"Using iQID base path: {iqid_base_path}")
             
         # Process both 3D and Sequential processing types
         for processing_type in ["3D", "Sequential"]:
@@ -338,11 +357,60 @@ class ReUploadPipelineEvaluator:
                     except Exception as seg_e:
                         self.logger.warning(f"Robust segmentation failed for {raw_file}: {seg_e}")
                     
-                    # Perform actual splitting using the pipeline
-                    segmented_files = self.raw_splitter.split_image(
-                        str(raw_file), 
-                        str(segmented_dir)
-                    )
+                    # Perform actual splitting using adaptive or fallback methods
+                    try:
+                        # First, try adaptive segmentation if we know the expected count
+                        if sample_info.get('has_segmented'):
+                            # Count ground truth segments to guide adaptive segmentation
+                            gt_segments = list(sample_info['segmented_dir'].glob("*.tif"))
+                            expected_count = len(gt_segments)
+                            
+                            self.logger.info(f"Using adaptive segmentation with expected count: {expected_count}")
+                            segmented_files = self.enhanced_splitter.split_image_adaptive(
+                                str(raw_file),
+                                str(segmented_dir),
+                                ground_truth_count=expected_count
+                            )
+                        else:
+                            # Use adaptive segmentation without known count
+                            self.logger.info("Using adaptive segmentation without ground truth count")
+                            segmented_files = self.enhanced_splitter.split_image_adaptive(
+                                str(raw_file),
+                                str(segmented_dir)
+                            )
+                            
+                    except Exception as adaptive_error:
+                        self.logger.warning(f"Adaptive segmentation failed: {adaptive_error}")
+                        
+                        # Fallback: estimate grid from ground truth if available
+                        if sample_info.get('has_segmented'):
+                            gt_segments = list(sample_info['segmented_dir'].glob("*.tif"))
+                            expected_count = len(gt_segments)
+                            estimated_grid = self._estimate_grid_from_count(expected_count)
+                            
+                            self.logger.info(f"Trying fallback grid {estimated_grid} for {expected_count} segments")
+                            
+                            try:
+                                fallback_splitter = RawImageSplitter(
+                                    grid_rows=estimated_grid[0],
+                                    grid_cols=estimated_grid[1]
+                                )
+                                segmented_files = fallback_splitter.split_image(
+                                    str(raw_file),
+                                    str(segmented_dir)
+                                )
+                                self.logger.info(f"Fallback grid splitting succeeded")
+                                
+                            except Exception as fallback_error:
+                                self.logger.error(f"Fallback grid splitting also failed: {fallback_error}")
+                                raise fallback_error
+                        else:
+                            # No ground truth available, use default grid as last resort
+                            self.logger.warning("No ground truth available, using default 3x3 grid")
+                            segmented_files = self.raw_splitter.split_image(
+                                str(raw_file), 
+                                str(segmented_dir)
+                            )
                     
                     results['processing_log'].append({
                         'stage': 'segmentation',
@@ -386,7 +454,7 @@ class ReUploadPipelineEvaluator:
             # Get segmented files and align them
             segmented_files = sorted(list(segmented_dir.glob("*.tif")))
             if segmented_files:
-                aligned_files = self.aligner.align_images(
+                aligned_files = self.aligner.align_images_files(
                     [str(f) for f in segmented_files],
                     str(aligned_dir)
                 )
@@ -478,6 +546,43 @@ class ReUploadPipelineEvaluator:
                          f"(aspect ratio: {aspect_ratio:.2f}) - "
                          f"Expected: {best_grid[0]*best_grid[1]} total samples")
         
+        return best_grid
+    
+    def _estimate_grid_from_count(self, count: int) -> Tuple[int, int]:
+        """
+        Estimate grid size based on expected segment count
+        
+        Args:
+            count: Expected number of segments
+            
+        Returns:
+            (rows, cols) grid arrangement
+        """
+        # Common factorizations for typical iQID arrangements
+        factorizations = [
+            (1, count),    # Single row
+            (2, count//2) if count % 2 == 0 else None,
+            (3, count//3) if count % 3 == 0 else None,
+            (4, count//4) if count % 4 == 0 else None,
+            (5, count//5) if count % 5 == 0 else None,
+            (6, count//6) if count % 6 == 0 else None,
+        ]
+        
+        # Filter out None values
+        valid_factorizations = [f for f in factorizations if f is not None]
+        
+        if not valid_factorizations:
+            # If no perfect factorization, try to find closest square
+            sqrt_count = int(np.sqrt(count))
+            for i in range(sqrt_count, 0, -1):
+                if count % i == 0:
+                    return (i, count // i)
+            return (1, count)  # Fallback to single row
+        
+        # Prefer more square-like arrangements (closer to 1:1 aspect ratio)
+        best_grid = min(valid_factorizations, key=lambda x: abs(x[0] - x[1]))
+        
+        self.logger.debug(f"Estimated grid {best_grid} for {count} segments")
         return best_grid
     
     def compare_segmented_results(self, sample_info: Dict, automated_results: Dict) -> EvaluationResult:

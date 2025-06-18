@@ -4,577 +4,275 @@
 
 This document provides a comprehensive understanding of the UCSF iQID and H&E data structure, processing workflows, and CLI development requirements. This information is critical for proper implementation of the batch processing CLI and pipeline integration.
 
+The key strategic insight is that the **provided datasets contain manually processed ground truth results for most workflow stages**. The primary goal is therefore to develop an **automated pipeline**, leveraging the existing `iqid-alphas` framework, where each component can be **validated against this ground truth**.
+
 > **📌 IMPORTANT UPDATE:** The ReUpload dataset structure has been corrected based on the actual dataset organization. The ReUpload data is organized as `ReUpload/3D/tissue/sample/` and `ReUpload/Sequential/tissue/sample/` (not the nested `ReUpload/iQID_reupload/iQID/3D/tissue/sample/` structure as previously documented). This correction affects all evaluation and processing logic.
+
+## Overall Workflow Summary
+
+The project is divided into two primary, sequential workflows:
+
+1.  **iQID Alignment (Validation using `ReUpload` data):**
+    * **Grouping:** Raw images are grouped by mouse (`M` id) and day (`D` id), as one raw image contains multiple tissue types (e.g., Kidney L/R, Tumor).
+    * **Segmentation:** An automated module separates the different tissue regions from the single raw image into distinct sample stacks.
+    * **Alignment:** Each separated tissue stack is then processed through an automated alignment module.
+    * **Validation:** The outputs of the automated segmentation and alignment modules are validated against the ground truth in the `ReUpload` dataset.
+2.  **Multi-Modal Co-Registration (Development using `DataPush1` data):**
+    * **Pairing:** After the iQID alignment pipeline is validated, aligned iQID stacks from `DataPush1` are programmatically paired with their corresponding H&E image stacks based on matching conditions (mouse, day, tissue type).
+    * **Co-Registration:** An automated module is developed to co-register these matched iQID and H&E pairs.
+    * **Assessment:** Since no final ground truth exists for co-registration, this step is assessed qualitatively and with proxy metrics.
+
+## Foundational Framework: `iqid-alphas`
+
+[https://github.com/robin-peter/iqid-alphas](https://github.com/robin-peter/iqid-alphas)
+
+A key component of this project is to build upon the existing and validated **`iqid-alphas` Python framework**. This framework, authored by the data providers, contains the original methods used for their scientific publications. We will not be starting from scratch; instead, we will adapt and extend this codebase.
+
+* **Core Modules to Leverage:**
+    * `iqid/process_object.py`: For listmode data processing, relevant to the `Raw` -> `Segmented` stage.
+    * `iqid/align.py`: For alignment and registration, using `PyStackReg`. This is the foundation for both the iQID slice alignment and the iQID-H&E co-registration modules.
+    * `iqid/dpk.py`: For dose kernel calculations and dosimetry. This will be used for downstream scientific validation of our final aligned data.
+* **Strategy:** Our automated modules will be wrappers around, or extensions of, the functions within `iqid-alphas` to ensure our results are consistent with the established science.
 
 ## 1. Data Hierarchy and Structure
 
 ### 1.1 Dataset Overview
 
-The UCSF data is organized into two distinct datasets with different processing stages:
+The UCSF data is organized into two distinct datasets that serve different purposes: validation and production analysis. The logical workflow proceeds from the `ReUpload` dataset to the `DataPush1` dataset.
+
+#### **ReUpload**: Complete Workflow & Validation Dataset
+
+* **iQID**: Contains the full workflow (`Raw` → `1_segmented` → `2_aligned`). The `segmented` and `aligned` stages serve as **ground truth** for validating automated algorithms.
+* **H&E**: Not available in this dataset.
+* **Status**: Single-modal iQID dataset with all processing stages.
+* **Use Case**: Development and validation of the automated **segmentation** and **slice alignment** modules.
 
 #### **DataPush1**: Production-Ready Dataset
-- **iQID**: Already aligned and ready for 3D reconstruction
-- **H&E**: Processed histology images paired with iQID
-- **Status**: Complete multi-modal dataset (iQID + H&E)
-- **Use Case**: Immediate analysis, method validation, production workflows
 
-#### **ReUpload**: Complete Workflow Dataset  
-- **iQID**: Contains full workflow (Raw → 1_segmented → 2_aligned)
-- **H&E**: Not available in this dataset
-- **Status**: Single-modal iQID dataset with all processing stages
-- **Use Case**: Workflow development, pipeline testing, method development
+* **iQID**: Already aligned and ready for 3D reconstruction. Represents ground truth for pre-processing.
+* **H&E**: Processed histology images paired with iQID.
+* **Status**: Complete multi-modal dataset (iQID + H&E).
+* **Use Case**: Development and validation of the final **H&E and iQID co-registration** step.
 
 ### 1.2 Detailed Data Organization
 
+#### **ReUpload Structure (Full Workflow Dataset):**
+
+```
+ReUpload/
+└── iQID_reupload
+    └── iQID
+        ├── 3D/                      # 3D processing directory
+        │   ├── kidney/              # Tissue type: kidney
+        │   │   ├── D1M1(P1)_L/      # Sample: Day 1, Mouse 1, Part 1, Left kidney
+        │   │   │   ├── 0_D1M1K(P1)_iqid_event_image.tif  # Raw iQID event data (INPUT)
+        │   │   │   ├── 1_segmented/   # Ground Truth for Segmentation
+        │   │   │   │   ├── mBq_0.tif    # Segmented slice 0
+        │   │   │   │   └── ...
+        │   │   │   └── 2_aligned/     # Ground Truth for Alignment
+        │   │   │       ├── mBq_corr_0.tif   # Aligned slice 0
+        │   │   │       └── ...
+        │   │   └── ...              # Additional samples
+        └── ...
+```
+
 #### **DataPush1 Structure (Production Dataset):**
+
 ```
 DataPush1/
-├── HE/                           # Ready-to-use H&E data
-│   ├── 3D/                      # 3D reconstruction ready
-│   │   ├── kidney/              # Tissue type: kidney
-│   │   │   ├── D1M1_L/         # Sample: Day 1, Mouse 1, Left kidney
-│   │   │   │   ├── P1L.tif     # H&E slice 1, Left (aligned)
-│   │   │   │   ├── P2L.tif     # H&E slice 2, Left (aligned)
-│   │   │   │   └── P3L.tif     # H&E slice 3, Left (aligned)
-│   │   │   └── D1M1_R/         # Sample: Day 1, Mouse 1, Right kidney
-│   │   └── tumor/              # Tissue type: tumor
-│   ├── Sequential/             # Sequential section analysis
-│   └── Upper/Lower/            # Specific anatomical sections
-└── iQID/                        # Ready-to-use iQID data  
-    ├── 3D/                     # 3D reconstruction ready (aligned)
+├── HE/                      # Ready-to-use H&E data
+│   ├── 3D/                  # 3D reconstruction ready
+│   │   ├── kidney/          # Tissue type: kidney
+│   │   │   ├── D1M1_L/      # Sample: Day 1, Mouse 1, Left kidney
+│   │   │   │   ├── P1L.tif      # H&E slice 1, Left (aligned)
+│   │   │   │   ├── P2L.tif      # H&E slice 2, Left (aligned)
+│   │   │   │   └── P3L.tif      # H&E slice 3, Left (aligned)
+│   │   │   └── D1M1_R/      # Sample: Day 1, Mouse 1, Right kidney
+│   │   └── tumor/           # Tissue type: tumor
+│   ├── Sequential/          # Sequential section analysis
+│   └── Upper/Lower/         # Specific anatomical sections
+└── iQID/                      # Ready-to-use iQID data
+    ├── 3D/                  # 3D reconstruction ready (aligned)
     │   ├── kidney/
-    │   │   ├── D1M1(P1)_L/     # Sample: Day 1, Mouse 1, Protocol 1, Left
-    │   │   │   ├── mBq_corr_0.tif    # Aligned slice 0
-    │   │   │   ├── mBq_corr_1.tif    # Aligned slice 1  
-    │   │   │   └── mBq_corr_2.tif    # Aligned slice 2
+    │   │   ├── D1M1(P1)_L/  # Sample: Day 1, Mouse 1, Protocol 1, Left
+    │   │   │   ├── mBq_corr_0.tif   # Aligned slice 0
+    │   │   │   ├── mBq_corr_1.tif   # Aligned slice 1
+    │   │   │   └── mBq_corr_2.tif   # Aligned slice 2
     │   │   └── D1M1(P1)_R/
     │   └── tumor/
     ├── Sequential/
     └── Upper/Lower/
 ```
 
-#### **ReUpload Structure (Full Workflow Dataset):**
-```
-ReUpload/
-├── 3D/                          # 3D processing directory
-│   ├── kidney/                  # Tissue type: kidney
-│   │   ├── D1M1(P1)_L/          # Sample: Day 1, Mouse 1, Protocol 1, Left
-│   │   │   ├── 0_D1M1K(P1)_iqid_event_image.tif  # Raw iQID event data
-│   │   │   ├── 1_segmented/     # Segmented slices directory
-│   │   │   │   ├── mBq_0.tif    # Segmented slice 0
-│   │   │   │   ├── mBq_1.tif    # Segmented slice 1
-│   │   │   │   ├── mBq_2.tif    # Segmented slice 2
-│   │   │   │   ├── mBq_3.tif    # Segmented slice 3
-│   │   │   │   └── ...          # Additional slices (up to ~16)
-│   │   │   └── 2_aligned/       # Aligned slices directory
-│   │   │       ├── mBq_corr_0.tif   # Aligned slice 0
-│   │   │       ├── mBq_corr_1.tif   # Aligned slice 1
-│   │   │       ├── mBq_corr_2.tif   # Aligned slice 2
-│   │   │       ├── mBq_corr_3.tif   # Aligned slice 3
-│   │   │       └── ...              # Additional aligned slices
-│   │   ├── D1M1(P1)_R/          # Sample: Day 1, Mouse 1, Protocol 1, Right
-│   │   ├── D1M1(P2)_L/          # Sample: Day 1, Mouse 1, Protocol 2, Left
-│   │   ├── D7M2(P1)_L/          # Sample: Day 7, Mouse 2, Protocol 1, Left
-│   │   └── ...                  # Additional kidney samples
-│   └── tumor/                   # Tissue type: tumor (if present)
-│       └── ...                  # Tumor samples following same structure
-└── Sequential/                  # Sequential processing directory
-    ├── kidney/                  # Tissue type: kidney
-    │   └── ...                  # Sequential kidney samples
-    └── tumor/                   # Tissue type: tumor
-        └── ...                  # Sequential tumor samples
-```
-
-### 1.3 Dataset Characteristics Summary
-
-| Dataset | iQID Status | H&E Available | Processing Stages | Primary Use |
-|---------|-------------|---------------|-------------------|-------------|
-| **DataPush1** | ✅ Aligned (ready) | ✅ Available | Final stage only | Production analysis |
-| **ReUpload** | 🔄 Full workflow | ❌ Not available | Raw → Segmented → Aligned | Pipeline development |
-
-### 1.2 Data Types Classification
-
-#### **Image Types:**
-- **iQID**: Quantitative imaging data (`mBq_corr_*.tif`, scientific TIFF format)
-- **H&E**: Histology images (`P*.tif`, pathology slides)
-
-#### **Tissue Types:**
-- **kidney**: Left (`_L`) and Right (`_R`) variants
-- **tumor**: Various tumor classifications (T1, T2, etc.)
-
-#### **Preprocessing Types:**
-- **3D**: Volumetric reconstruction (multiple slices → 3D volume)
-- **Sequential**: Section-by-section analysis
-- **Upper/Lower**: Anatomical position-specific processing
-
-### 1.3 Sample Naming Conventions
+### 1.3 Sample Naming and Grouping
 
 #### **iQID Sample Naming Format:** `D{day}M{mouse}(P{part})_{tissue}`
 
-**Component Breakdown:**
-- **D{day}**: Time point (D1 = 1 day post-injection, D7 = 7 days post-injection)
-- **M{mouse}**: Mouse subject number (M1, M2, etc.)
-- **P{part}**: Acquisition part/session (P1, P2, etc.) - indicates multiple imaging sessions for same mouse
-- **_{tissue}**: Tissue type suffix
-  - `_L`: Left kidney (kidney_left)
-  - `_R`: Right kidney (kidney_right)
-  - `_T`: Tumor
-
-**Examples:**
-- `D1M1(P1)_L` = Day 1, Mouse 1, Part 1, Left kidney
-- `D7M2(P2)_R` = Day 7, Mouse 2, Part 2, Right kidney
-- `D1M1(P1)_T` = Day 1, Mouse 1, Part 1, Tumor
+* **D{day}**: Time point (e.g., D1)
+* **M{mouse}**: Mouse subject number (e.g., M1)
+* **P{part}**: Acquisition part/session (e.g., P1)
+* **\_{tissue}**: Tissue type suffix (`_L` for Left kidney, `_R` for Right kidney, `_T` for Tumor)
 
 #### **Common ID Grouping for Tissue Separation:**
-Samples with the same `D{day}M{mouse}(P{part})` prefix should share the same raw image and represent different tissue types separated from a single acquisition. For example:
-- `D1M1(P1)_L`, `D1M1(P1)_R`, `D1M1(P1)_T` would all be extracted from the same raw iQID image
-- The raw image contains a grid layout with all tissue types that need to be separated
 
-#### **Typical iQID Grid Layout in Raw Images:**
-Based on the tissue arrangement described:
-- **Row 1**: 4 tumor slices (higher intensity, higher activity level)
-- **Row 2-3**: Left and right kidney slices (upper sections)  
-- **Row 4-5**: Left and right kidney slices (lower sections)
-- **Total**: Typically 12 samples arranged in a 3×4 or 4×3 grid
+A critical concept is that samples with the same `D{day}M{mouse}(P{part})` prefix **share the same raw image** and represent different tissue types separated from a single acquisition.
 
-#### **H&E Samples (DataPush1 only):**
-- Format: `D{day}M{mouse}_{tissue}` (part notation typically omitted)
-- Examples: `D1M1_L`, `D7M2_R`
+* **Example:** `D1M1(P1)_L`, `D1M1(P1)_R`, and potentially `D1M1(P1)_T` would all be extracted from the *same* raw iQID image file.
+* **Implication:** The first processing step is to group these sample directories to identify the single, shared raw image that serves as the input to the segmentation module.
 
-#### **Sample Pairing Logic:**
-- Remove `(P*)` from iQID names to match H&E: `D1M1(P1)_L` → `D1M1_L`
+### 1.4 Dataset Characteristics Summary
+
+| Dataset     | iQID Status              | H&E Available | Processing Stages                 | Primary Use                               |
+| ----------- | ------------------------ | ------------- | --------------------------------- | ----------------------------------------- |
+| **ReUpload** | 🔄 Full workflow         | ❌ Not available | Raw → GT Segmented → GT Aligned   | **Validation of Segmentation & Alignment** |
+| **DataPush1** | ✅ Aligned (Ground Truth) | ✅ Available   | Final stage only                  | **Validation of Co-Registration** |
 
 ## 2. iQID Processing Workflow
 
-### 2.1 Three-Stage Processing Pipeline
+### 2.1 Three-Stage Processing & Validation Pipeline
+
+The goal is to create an automated system that replicates the manual processing steps. The `ReUpload` dataset provides the inputs and the ground truth outputs for the first two stages.
 
 ```
-Raw iQID Image → Segmentation → Alignment → 3D Reconstruction
-     ↓               ↓            ↓              ↓
-Single multi-    Individual    Sorted &      Ready for
-slice image      cropped       aligned       volumetric
-                 slices        slices        analysis
+(INPUT)          (AUTOMATION GOAL 1)    (AUTOMATION GOAL 2)
+Raw iQID Image → Automated Segmentation → Automated Alignment → 3D Reconstruction
+      ↓                    |                      |
+      ↓            (VALIDATE AGAINST)     (VALIDATE AGAINST)
+      ↓            `1_segmented/`         `2_aligned/`
+      ↓             (Ground Truth)         (Ground Truth)
 ```
 
-#### **Stage 1: Raw Data**
-- **Location**: Sample directory root (e.g., `D1M1(P1)_L/`)
-- **Format**: Single TIFF image containing all tissue slices
-- **File Pattern**: `0_*_iqid_event_image.tif` (e.g., `0_D1M1K(P1)_iqid_event_image.tif`)
-- **Characteristics**: Multi-slice data in one file, requires cropping
+## 3. CLI and Automation Strategy
 
-#### **Stage 2: Segmentation** 
-- **Location**: `1_segmented/` subdirectory within each sample
-- **Process**: Crop individual slices from raw multi-slice image
-- **Output**: Separate TIFF files for each tissue slice
-- **Files**: `mBq_0.tif`, `mBq_1.tif`, `mBq_2.tif`, etc.
+### 3.1 Automation & Validation Strategy
 
-#### **Stage 3: Alignment**
-- **Location**: `2_aligned/` subdirectory within each sample  
-- **Process**: Sort slices by anatomical position and align for 3D reconstruction
-- **Output**: Spatially aligned slice stack ready for volumetric analysis
-- **Files**: `mBq_corr_0.tif`, `mBq_corr_1.tif`, `mBq_corr_2.tif`, etc.
-- **Purpose**: Enables accurate 3D tissue reconstruction
+The core logic is to run an automated module and compare its output to the known ground truth.
 
-### 2.2 Processing Stage Priorities
+#### **ReUpload (Segmentation & Alignment Validation):**
 
-1. **Raw Processing**: Convert multi-slice image to individual slices
-2. **Segmentation**: Extract clean tissue boundaries from each slice
-3. **Alignment**: Prepare for 3D reconstruction through spatial alignment
-4. **3D Reconstruction**: Combine aligned slices into volumetric data
-
-### 2.2 Raw iQID Image Structure
-
-#### **Slice Arrangement in Raw Images:**
 ```
-Raw iQID Image Layout (Top to Bottom, Left to Right):
-┌─────────┬─────────┬─────────┐
-│ Slice 0 │ Slice 1 │ Slice 2 │  ← Top row
-├─────────┼─────────┼─────────┤
-│ Slice 3 │ Slice 4 │ Slice 5 │  ← Middle row  
-├─────────┼─────────┼─────────┤
-│ Slice 6 │ Slice 7 │ Slice 8 │  ← Bottom row
-└─────────┴─────────┴─────────┘
-```
+def validate_segmentation_module(raw_image_path, group_of_gt_dirs):
+    # 1. Get the shared raw image input (already found by grouping)
+    # raw_image_path = path/to/0_D1M1K(P1)_iqid_event_image.tif
 
-**Key Characteristics:**
-- **Spatial Order**: Slices arranged top-to-bottom, left-to-right
-- **Natural Sorting**: Reading order corresponds to anatomical sequence
-- **Segmentation Process**: Extract individual rectangles from grid layout
-- **Anatomical Correspondence**: Grid position relates to tissue depth/position
+    # 2. Run the automated segmentation module
+    # This should output separate directories for each tissue type.
+    automated_output_group = auto_segmentation_pipeline.run(raw_image_path)
 
-#### **Segmentation Strategy:**
-1. **Grid Detection**: Identify slice boundaries in raw image
-2. **Sequential Extraction**: Extract slices in reading order (0, 1, 2, 3...)
-3. **Spatial Preservation**: Maintain anatomical sequence through extraction
-4. **Quality Validation**: Ensure complete slice extraction from grid
+    # 3. Compare each automated output against its corresponding ground truth dir
+    # group_of_gt_dirs = {'L': path/to/D1M1_L/1_segmented, 'R': path/to/D1M1_R/1_segmented}
+    all_metrics = {}
+    for tissue_type, automated_dir in automated_output_group.items():
+        gt_dir = group_of_gt_dirs[tissue_type]
+        metrics = validation.compare_segmentation(automated_dir, gt_dir)
+        all_metrics[tissue_type] = metrics
+    return all_metrics
 
-## 3. CLI Implementation Requirements
+def validate_alignment_module(segmented_dir, aligned_gt_dir):
+    # 1. Get segmented slices (input)
+    # segmented_dir = path/to/D1M1_L/1_segmented
 
-### 3.1 Data Discovery Logic
+    # 2. Run the automated alignment module
+    automated_alignment_dir = auto_alignment_pipeline.run(segmented_dir)
 
-The CLI must understand and handle both dataset types:
+    # 3. Get the ground truth alignment
+    # aligned_gt_dir = path/to/D1M1_L/2_aligned
 
-#### **Dataset Type Detection:**
-```python
-def detect_dataset_type(data_path):
-    if "DataPush1" in str(data_path):
-        return "production"  # Aligned data ready for analysis
-    elif "ReUpload" in str(data_path):
-        return "workflow"    # Full workflow data available
-    else:
-        return "unknown"
+    # 4. Compare the output against the ground truth
+    metrics = validation.compare_alignment(automated_alignment_dir, aligned_gt_dir)
+    return metrics
 ```
 
-#### **Processing Stage Detection (Dataset-Specific):**
-```python
-def detect_processing_stage(sample_dir, dataset_type):
-    if dataset_type == "production":
-        # DataPush1: Only aligned data available
-        return "aligned_ready"
-    elif dataset_type == "workflow":
-        # ReUpload: Check for workflow stages within sample directory
-        if any(sample_dir.glob("0_*_iqid_event_image.tif")):
-            return "raw_available"
-        elif (sample_dir / "1_segmented").exists():
-            return "segmented_available" 
-        elif (sample_dir / "2_aligned").exists():
-            return "aligned_available"
-    return "unknown_stage"
+#### **DataPush1 (Co-Registration Development):**
+
+```
+def find_and_process_pairs(datpush1_root):
+    # 1. Discover all iQID and H&E samples and create a lookup table.
+    iqid_samples = find_samples(datpush1_root / "iQID")
+    he_samples = find_samples(datpush1_root / "HE")
+
+    # 2. Iterate and find matching pairs based on D, M, and tissue identifiers.
+    paired_samples = match_samples(iqid_samples, he_samples)
+
+    # 3. Process each pair
+    for pair in paired_samples:
+        develop_coregistration_module(pair)
+
+def develop_coregistration_module(paired_sample):
+    # 1. Get the prepared iQID and H&E stacks
+    iqid_stack_dir = paired_sample['iqid_path']
+    he_stack_dir = paired_sample['he_path']
+
+    # 2. Run the automated co-registration module
+    coregistered_output = auto_coregistration_pipeline.run(iqid_stack_dir, he_stack_dir)
+
+    # 3. Assess the output
+    assessment = assessment.quality_check_coregistration(coregistered_output)
+    return assessment
 ```
 
-#### **Sample Analysis (Updated for Dataset Types):**
-```python
-sample_info = {
-    'sample_dir': sample_dir,
-    'sample_id': sample_dir.name,
-    'dataset_type': detect_dataset_type(sample_dir),
-    'tissue_type': extract_tissue_type(path),
-    'preprocessing_type': extract_preprocessing_type(path),
-    'processing_stage': detect_processing_stage(sample_dir, dataset_type),
-    'has_he_data': dataset_type == "production",  # Only DataPush1 has H&E
-    'available_stages': list_available_stages(sample_dir, dataset_type),
-    'slice_count': count_slices_in_latest_stage(sample_dir),
-    'can_reconstruct_3d': has_aligned_slices(sample_dir),
-    'multi_modal_ready': dataset_type == "production"  # iQID + H&E available
-}
-```
-
-### 3.2 Processing Strategy by Dataset and Stage
-
-#### **DataPush1 (Production Dataset) Processing:**
-```python
-if dataset_type == "production":
-    # Process aligned iQID data (ready for 3D reconstruction)
-    if has_he_data:
-        # Multi-modal analysis: iQID + H&E
-        pipeline.process_multimodal_aligned(iqid_dir, he_dir, output_dir)
-    else:
-        # Single-modal iQID analysis
-        pipeline.process_aligned_iqid(iqid_dir, output_dir)
-```
-
-#### **ReUpload (Workflow Dataset) Processing:**
-```python
-if dataset_type == "workflow":
-    if processing_stage == "raw_available":
-        # Process raw multi-slice image → segmented slices
-        pipeline.process_raw_iqid(raw_image_path, output_dir)
-    elif processing_stage == "segmented_available":
-        # Process segmented slices → aligned stack  
-        pipeline.process_segmented_slices(segmented_dir, output_dir)
-    elif processing_stage == "aligned_available":
-        # Process aligned slices → 3D reconstruction
-        pipeline.process_aligned_stack(aligned_dir, output_dir)
-```
-
-#### **Workflow Progression (ReUpload Only):**
-```python
-# Auto-progression through workflow stages
-def process_full_workflow(sample_dir):
-    stages = ["raw", "segmented", "aligned", "3d_reconstruction"]
-    for stage in stages:
-        if stage_available(sample_dir, stage):
-            process_stage(sample_dir, stage)
-            validate_stage_output(sample_dir, stage)
-        else:
-            break  # Stop at first unavailable stage
-```
-
-### 3.3 Multi-Modal Integration
-
-#### **iQID + H&E Pairing:**
-```python
-paired_sample = {
-    'iqid_sample': {
-        'sample_dir': iqid_sample_dir,
-        'processing_stage': 'aligned_available',
-        'slice_files': sorted_iqid_slices
-    },
-    'he_sample': {
-        'sample_dir': he_sample_dir,
-        'slice_files': sorted_he_slices
-    },
-    'can_coregister': True if both have aligned slices
-}
-```
-
-## 4. Pipeline Integration Strategy
-
-### 4.1 Pipeline Method Mapping
-
-#### **SimplePipeline:**
-- **Method**: `process_iqid_stack(sample_dir, output_dir)`
-- **Input**: Sample directory (any stage)
-- **Logic**: Auto-detect stage and process accordingly
-
-#### **AdvancedPipeline:**
-- **Method**: `process_image(slice_file, output_dir)` 
-- **Input**: Representative slice from aligned stage
-- **Strategy**: Use middle slice as most representative
-
-#### **CombinedPipeline:**
-- **Method**: `process_image_pair(he_slice, iqid_slice, output_dir)`
-- **Input**: Corresponding slices from both modalities
-- **Strategy**: Match slice positions for co-registration
-
-### 4.2 Quality Assessment Integration
-
-#### **Stage-Specific Metrics:**
-```python
-quality_metrics = {
-    'raw_stage': ['image_quality', 'slice_separation'],
-    'segmented_stage': ['segmentation_accuracy', 'slice_completeness'],
-    'aligned_stage': ['alignment_quality', '3d_reconstruction_readiness'],
-    'combined_analysis': ['coregistration_accuracy', 'multi_modal_alignment']
-}
-```
-
-## 5. Development Implementation Plan
+## 5. Development Implementation Plan (Revised)
 
 ### 5.1 Phase 1: Core Data Understanding (COMPLETED)
-- ✅ Document data hierarchy
-- ✅ Understand processing workflow stages  
-- ✅ Define sample naming conventions
-- ✅ Clarify tissue slice vs time-series distinction
 
-### 5.2 Phase 2: CLI Data Discovery Enhancement
-#### **Required Updates:**
-1. **Stage Detection**: Identify raw event files, 1_segmented/, and 2_aligned/ subdirectories
-2. **Processing Readiness**: Determine what processing can be performed
-3. **Multi-Stage Reporting**: Show available processing stages per sample
-4. **3D Capability Flags**: Identify samples ready for volumetric analysis
+* ✅ Document data hierarchy and ground truth availability.
+* ✅ Understand the two primary validation workflows.
 
-#### **Implementation Priority:**
-```python
-# High Priority
-- detect_processing_stage()
-- analyze_sample_workflow_status()
-- report_3d_reconstruction_readiness()
+### 5.2 Phase 2: Automated Segmentation Module
 
-# Medium Priority  
-- validate_slice_completeness()
-- assess_alignment_quality()
-- check_multi_modal_compatibility()
-```
+* **Goal**: Develop an algorithm to process a raw multi-tissue image and extract separate, clean tissue slices for each type.
+* **Input**: A single `.../0_*_iqid_event_image.tif` identified by grouping samples.
+* **Ground Truth**: The corresponding set of `.../1_segmented/` directories for that group.
+* **Validation**: Calculate IoU or Dice coefficient for segmentation masks against ground truth for each tissue type.
 
-### 5.3 Phase 3: Pipeline Processing Logic
-#### **Required Updates:**
-1. **Stage-Aware Processing**: Route to appropriate processing based on available data
-2. **Workflow Progression**: Support raw → segmented → aligned pipeline
-3. **Quality Gates**: Validate each stage before proceeding to next
-4. **3D Integration**: Enable volumetric reconstruction from aligned slices
+### 5.3 Phase 3: Automated Slice Alignment Module
 
-### 5.4 Phase 4: Multi-Modal Co-Registration
-#### **Required Features:**
-1. **Slice Correspondence**: Match iQID and H&E slices by position
-2. **Spatial Alignment**: Register between imaging modalities
-3. **Quality Assessment**: Validate co-registration accuracy
-4. **Integrated Visualization**: Combined multi-modal outputs
+* **Goal**: Develop an algorithm to spatially align a stack of segmented slices for a single tissue type.
+* **Input**: Slices from `ReUpload/.../1_segmented/`.
+* **Ground Truth**: `ReUpload/.../2_aligned/`.
+* **Validation**: Calculate MSE or SSIM between the automated aligned stack and the ground truth stack.
 
-## 6. Technical Specifications
+### 5.4 Phase 4: Automated Co-Registration Module (H&E + iQID)
 
-### 6.1 File Format Support
-- **iQID**: Scientific TIFF (float64, quantitative data)
-- **H&E**: Standard TIFF (RGB histology images)
-- **Output**: PNG/TIFF for visualization, NumPy arrays for analysis
+* **Goal**: Develop an algorithm to co-register the prepared H&E and iQID stacks.
+* **Input**: Programmatically paired sample directories from `DataPush1/HE/` and `DataPush1/iQID/`.
+* **Validation**: Qualitative visual inspection and quantitative proxy metrics (e.g., mutual information).
 
-### 6.2 Memory Management
-- **Raw iQID**: Large multi-slice images (potential memory issues)
-- **Segmented**: Multiple individual slices (moderate memory usage)
-- **Aligned**: Optimized for 3D processing (efficient memory usage)
+## 8. Comprehensive Validation and Testing Strategy
 
-### 6.3 Processing Performance
-- **Stage Detection**: Fast directory scanning
-- **Slice Processing**: Parallel processing of individual slices
-- **3D Reconstruction**: Memory-efficient volumetric operations
+To ensure robustness, the automated pipeline will be tested at multiple entry points, allowing for both end-to-end validation and isolated module testing.
 
-## 7. CLI Command Structure (Updated)
+### 8.1 Modular and End-to-End Testing Pipelines
 
-### 7.1 Discovery Command Enhancement
-```bash
-# DataPush1 (Production dataset)
-python -m iqid_alphas.cli discover --data data/DataPush1
+We will implement several testing pipelines that use different combinations of automated and ground-truth data:
 
-# Expected Output:
-📁 DATA DISCOVERY RESULTS (DataPush1 - Production Dataset)
-========================================
-iQID samples (aligned, 3D ready): 15
-H&E samples (aligned, ready): 12  
-Paired samples (multi-modal ready): 12
+* **Test Pipeline 1: Full Automation (`ReUpload`)**
+    * **Workflow:** `Raw Image` → `Auto Segmented` → `Auto Aligned`
+    * **Purpose:** Test the entire iQID pre-processing pipeline from end to end.
+    * **Validation:**
+        * Compare `Auto Segmented` output against `GT 1_segmented`.
+        * Compare `Auto Aligned` output against `GT 2_aligned`.
+* **Test Pipeline 2: Alignment Module Validation (`ReUpload`)**
+    * **Workflow:** `Manual GT 1_segmented` → `Auto Aligned`
+    * **Purpose:** Isolate and test the performance of the alignment module, independent of segmentation errors.
+    * **Validation:** Compare `Auto Aligned` output against `GT 2_aligned`.
+* **Test Pipeline 3: Co-Registration Module Development (`DataPush1`)**
+    * **Workflow:** `Manual Aligned iQID` + `Manual Prepared H&E` → `Auto Co-Registered`
+    * **Purpose:** Develop and assess the final co-registration step using clean, manually prepared inputs.
+    * **Validation:** Qualitative assessment and proxy metrics (e.g., mutual information).
 
-🔬 Processing Status:
-   - Dataset type: Production (aligned data)
-   - All samples ready for 3D reconstruction
-   - Multi-modal analysis available (iQID + H&E)
+### 8.2 Downstream Scientific Analysis Validation
 
-🧬 Tissue Distribution:
-   - kidney: 10 samples (5 left, 5 right)
-   - tumor: 5 samples (various types)
+Once an aligned iQID stack is produced (either automatically or from ground truth), we can validate its scientific integrity.
 
-# ReUpload (Workflow dataset)
-python -m iqid_alphas.cli discover --data data/ReUpload
-
-# Expected Output:
-📁 DATA DISCOVERY RESULTS (ReUpload - Workflow Dataset)
-========================================
-iQID samples (workflow stages): 25
-H&E samples: 0 (not available in this dataset)
-Paired samples: 0 (single-modal dataset)
-
-🔬 Processing Stage Analysis:
-   - Raw stage available: 25 samples
-   - Segmented stage available: 20 samples  
-   - Aligned stage available: 15 samples
-   - Ready for 3D reconstruction: 15 samples
-
-🧬 Workflow Opportunities:
-   - 5 samples need segmentation (raw → segmented)
-   - 5 samples need alignment (segmented → aligned)
-   - 15 samples ready for 3D reconstruction
-
-🗂️ Structure Analysis:
-   - Root path: data/ReUpload/3D/ (corrected structure)
-   - Tissue directories: kidney/, tumor/
-   - Sample format: D{day}M{mouse}(P{protocol})_{side}/
-```
-
-### 7.2 Processing Command Enhancement
-```bash
-# DataPush1: Multi-modal analysis (iQID + H&E)
-python -m iqid_alphas.cli process \
-    --data data/DataPush1 \
-    --config configs/multimodal_config.json \
-    --pipeline combined \
-    --max-samples 5
-
-# DataPush1: Single-modal iQID analysis
-python -m iqid_alphas.cli process \
-    --data data/DataPush1/iQID \
-    --config configs/iqid_analysis_config.json \
-    --pipeline advanced \
-    --max-samples 10
-
-# ReUpload: Workflow processing (auto-detect stage)
-python -m iqid_alphas.cli process \
-    --data data/ReUpload \
-    --config configs/workflow_config.json \
-    --pipeline simple \
-    --stage auto \
-    --max-samples 5
-
-# ReUpload: Specific stage processing
-python -m iqid_alphas.cli process \
-    --data data/ReUpload \
-    --config configs/alignment_config.json \
-    --stage segmented \
-    --output results/alignment_test
-```
-
-## 8. Validation and Testing Strategy
-
-### 8.1 Dataset-Specific Data Integrity Checks
-
-#### **DataPush1 (Production Dataset):**
-- ✅ Verify aligned iQID data completeness
-- ✅ Validate H&E data availability and pairing
-- ✅ Check multi-modal correspondence (iQID ↔ H&E)
-- ✅ Confirm 3D reconstruction readiness
-
-#### **ReUpload (Workflow Dataset):**
-- ✅ Verify Raw → Segmented → Aligned progression
-- ✅ Validate workflow stage completeness
-- ✅ Check slice count consistency across stages
-- ✅ Confirm iQID-only structure (no H&E expected)
-
-### 8.2 Processing Workflow Tests
-
-#### **DataPush1 Testing:**
-- 🔄 Multi-modal co-registration validation (iQID + H&E)
-- 🔄 3D reconstruction from aligned data
-- 🔄 Production workflow performance benchmarking
-- 🔄 Quality assessment for publication-ready results
-
-#### **ReUpload Testing:**
-- 🔄 Raw → Segmented workflow validation
-- 🔄 Segmented → Aligned pipeline testing  
-- 🔄 Full workflow progression (Raw → 3D)
-- 🔄 Pipeline development and method validation
-
-### 8.3 CLI Functionality Tests
-
-#### **Cross-Dataset Testing:**
-- 🔄 Dataset type auto-detection (DataPush1 vs ReUpload)
-- 🔄 Workflow-appropriate processing selection
-- 🔄 Error handling for dataset-inappropriate operations
-- 🔄 Performance comparison across dataset types
-
-#### **Use Case Validation:**
-- 🔄 Production analysis workflows (DataPush1)
-- 🔄 Development and testing workflows (ReUpload)
-- 🔄 Multi-modal vs single-modal processing paths
-- 🔄 Quality gates and validation checkpoints
-
-## 9. Future Enhancements
-
-### 9.1 Advanced 3D Features
-- **Volumetric Visualization**: Interactive 3D tissue rendering
-- **Cross-Sectional Analysis**: Arbitrary plane visualization
-- **Quantitative 3D Metrics**: Volume-based measurements
-
-### 9.2 Workflow Automation
-- **Pipeline Orchestration**: Automated raw → aligned processing
-- **Quality-Driven Progression**: Automatic stage advancement based on quality metrics
-- **Batch 3D Reconstruction**: Efficient volumetric processing of multiple samples
-
-### 9.3 Multi-Modal Integration
-- **Advanced Co-Registration**: Sophisticated alignment algorithms
-- **Integrated Analysis**: Combined iQID + H&E quantitative analysis
-- **Cross-Modal Validation**: Quality assessment across imaging modalities
+* **Workflow:** `Aligned iQID Stack` → Run `iqid.dpk` for Dosimetry Analysis.
+* **Purpose:** To ensure that the outputs from our automated pipeline are scientifically valid and can be used for the same downstream analyses as the original framework.
+* **Validation:** Compare the resulting dose maps and dosimetry values against those from the original publications or expected scientific outcomes. This confirms that our automated process does not introduce artifacts that would corrupt the final scientific results.
 
 ## Conclusion
 
-This comprehensive understanding of the UCSF iQID data structure and processing workflow provides the foundation for proper CLI implementation. The key insights are:
+### **Development Strategy:**
 
-### **Critical Dataset Distinctions:**
-1. **DataPush1**: Production-ready dataset with aligned iQID + H&E for immediate analysis
-2. **ReUpload**: Development dataset with full iQID workflow (Raw → Segmented → Aligned)
-3. **Multi-Modal vs Single-Modal**: DataPush1 enables iQID+H&E analysis, ReUpload is iQID-only
-
-### **Processing Strategy:**
-1. **DataPush1 Focus**: 3D reconstruction and multi-modal analysis
-2. **ReUpload Focus**: Workflow development and pipeline testing
-3. **Stage-Aware Processing**: CLI must detect and handle both dataset types appropriately
-
-### **Implementation Priorities:**
-1. **Dataset Type Detection**: Auto-identify DataPush1 vs ReUpload
-2. **Workflow-Appropriate Processing**: Different strategies per dataset
-3. **Multi-Modal Integration**: Leverage DataPush1's iQID+H&E capability
-4. **Quality-Driven Pipeline**: Each stage enables higher-level analysis
-
-### **CLI Development Focus:**
-1. **Discovery Enhancement**: Dataset-aware reporting and capability detection
-2. **Processing Logic**: Route samples to appropriate workflows based on dataset type
-3. **Quality Assessment**: Validate readiness for 3D reconstruction and multi-modal analysis
-4. **User Experience**: Clear indication of dataset capabilities and processing options
-
-This document serves as the definitive reference for all future development decisions and ensures proper implementation of the IQID-Alphas CLI system with full understanding of both production-ready and development datasets.
+1.  **Framework-First**: The core strategy is to build our automated pipeline by adapting and extending the existing, published `iqid-alphas` framework.
+2.  **Validation-Driven**: Rigorously test each automated module against the provided ground truth (`ReUpload`) and through a series of modular and end-to-end testing pipelines.
+3.  **Scientific Integrity**: Ensure the final outputs are compatible with and produce results consistent with the downstream scientific analyses (e.g., dosimetry) from the original framework.

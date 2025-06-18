@@ -117,20 +117,35 @@ class ImageSegmenter:
         return mask.astype(bool)
     
     def _clean_mask(self, mask: np.ndarray, min_size: int = 100, **kwargs) -> np.ndarray:
-        """Clean up binary mask by removing small objects and holes."""
+        """Clean up binary mask by removing only spike noise (single pixels)."""
         if not HAS_IMAGING:
             return mask
             
-        # Remove small objects
-        cleaned = morphology.remove_small_objects(mask, min_size=min_size)
+        # Remove only single pixel noise, preserve distributed patterns
+        if kwargs.get('preserve_blobs', True):
+            # Only remove 1-2 pixel noise spikes
+            cleaned = morphology.remove_small_objects(mask, min_size=2)
+        else:
+            # Standard removal of small objects
+            cleaned = morphology.remove_small_objects(mask, min_size=min_size)
         
-        # Fill small holes
+        # Minimal hole filling to preserve distributed dot structure
         if kwargs.get('fill_holes', True):
-            cleaned = morphology.remove_small_holes(cleaned, area_threshold=min_size//2)
+            if kwargs.get('preserve_blobs', True):
+                # Only fill tiny holes (1-2 pixels) to avoid destroying structure
+                hole_threshold = 2
+            else:
+                hole_threshold = min(min_size//4, 10)  # Much smaller hole filling
+            cleaned = morphology.remove_small_holes(cleaned, area_threshold=hole_threshold)
         
-        # Optional morphological operations
+        # Morphological operations: ONLY for spike noise removal
         if kwargs.get('morphological_closing', True):
-            cleaned = morphology.binary_closing(cleaned, morphology.disk(2))
+            if kwargs.get('preserve_blobs', True):
+                # Skip morphological closing to preserve distributed patterns
+                pass  # No morphological operations
+            else:
+                # Use smaller disk to avoid over-smoothing
+                cleaned = morphology.binary_closing(cleaned, morphology.disk(1))
         
         return cleaned
     
