@@ -5,6 +5,7 @@ create_gitkeeps.ipynb
 
 # Output directories
 outputs/
+results/
 *.pyc
 __pycache__/
 *.pyo
@@ -46,7 +47,27 @@ output*
 data*
 logs
 intermediate
+reports/
+temp_*
+*temp*
+dummy_*
 *.log
 *.tif
+*.tiff
 *.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.json
+*.html
+!configs/*.json
+!**/README.md
+!*.md
+!docs/**/*.json
+
+# Evaluation outputs
+evaluation/outputs/
+evaluation/reports/*.json
+evaluation/reports/*.png
 
