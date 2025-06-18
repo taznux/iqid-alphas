@@ -45,9 +45,11 @@ python -m iqid_alphas.cli process --data /path/to/data --config configs/cli_quic
 
 ## 📋 What's New in Version 1.0.0
 
-- ✅ **Streamlined Architecture**: Removed duplicate and obsolete code from archive
-- ✅ **Unified Testing**: Consolidated all tests in `iqid_alphas/tests/`
-- ✅ **Production CLI**: Advanced command-line interface for batch processing
+- ✅ **Streamlined Architecture**: Removed duplicate and obsolete code, cleaned repository structure
+- ✅ **Unified Testing**: Consolidated all tests in `iqid_alphas/tests/` with comprehensive coverage
+- ✅ **Production CLI**: Advanced command-line interface for batch processing and discovery
+- ✅ **Clean Repository**: Removed old test outputs, evaluation artifacts, and redundant files
+- ✅ **Updated Documentation**: Comprehensive user guides and API references
 - ✅ **UCSF Integration**: Optimized workflows for UCSF data processing
 - ✅ **Modern Package Structure**: Clean, importable `iqid_alphas` Python package
 - ✅ **Simple API**: Easy-to-use classes with sensible defaults
@@ -269,10 +271,16 @@ We welcome contributions! Please see our contribution guidelines:
 pip install -e .
 
 # Install development dependencies
-pip install -r requirements-dev.txt
+pip install -r requirements.txt
 
-# Run tests before submitting
-python -m pytest tests/
+# Run CLI tests
+python -m unittest iqid_alphas.tests.test_cli -v
+
+# Run integration tests
+python -m unittest iqid_alphas.tests.integration.test_consolidated_workflow -v
+
+# Run all tests
+python -m unittest discover iqid_alphas.tests -v
 ```
 
 ## 📄 License and Citation

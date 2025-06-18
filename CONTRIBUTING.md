@@ -4,8 +4,10 @@ We welcome contributions to the IQID-Alphas project! This guide will help you ge
 
 ## 📋 Table of Contents
 
-- [Getting Started](#getting-started)
-- [Development Setup](#development-setup)
+- [Getting Started](#getting-started6. **Test Your Changes**
+   ```bash
+   python -m unittest discover iqid_alphas.tests -v
+   ```[Development Setup](#development-setup)
 - [Contribution Guidelines](#contribution-guidelines)
 - [Code Standards](#code-standards)
 - [Testing](#testing)
@@ -42,7 +44,7 @@ We welcome contributions to the IQID-Alphas project! This guide will help you ge
 
 4. **Run Tests to Verify Setup**
    ```bash
-   python -m pytest iqid_alphas/tests/
+   python -m unittest discover iqid_alphas.tests -v
    ```
 
 ## 📝 Contribution Guidelines
@@ -186,16 +188,16 @@ class TestIQIDProcessor:
 
 ```bash
 # Run all tests
-python -m pytest iqid_alphas/tests/
+python -m unittest discover iqid_alphas.tests -v
 
-# Run specific test file
-python -m pytest iqid_alphas/tests/core/test_processor.py
+# Run CLI tests specifically
+python -m unittest iqid_alphas.tests.test_cli -v
 
-# Run with coverage
-python -m pytest --cov=iqid_alphas iqid_alphas/tests/
+# Run integration tests
+python -m unittest iqid_alphas.tests.integration.test_consolidated_workflow -v
 
-# Run integration tests only
-python -m pytest iqid_alphas/tests/integration/
+# Run core module tests
+python -m unittest iqid_alphas.tests.core -v
 ```
 
 ## 📚 Documentation
