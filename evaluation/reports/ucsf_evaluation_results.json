@@ -1,0 +1,1222 @@
+{
+  "evaluation_timestamp": "2025-06-18T17:11:36.848551",
+  "dataset": "UCSF",
+  "pipeline_version": "1.0",
+  "evaluation_type": "comprehensive_ucsf_assessment",
+  "data_discovery": {
+    "datapush1_iqid": {
+      "Sequential/kidneys/D1M1_L": {
+        "file_count": 12,
+        "files": [
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/kidneys/D1M1_L"
+      },
+      "Sequential/kidneys/D7M1_L": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/kidneys/D7M1_L"
+      },
+      "Sequential/kidneys/D1M1_R": {
+        "file_count": 12,
+        "files": [
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/kidneys/D1M1_R"
+      },
+      "Sequential/kidneys/D1M2_L": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/kidneys/D1M2_L"
+      },
+      "Sequential/kidneys/D7M2_L": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/kidneys/D7M2_L"
+      },
+      "Sequential/kidneys/D7M2_R": {
+        "file_count": 8,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_6.tif",
+          "mBq_corr_5.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/kidneys/D7M2_R"
+      },
+      "Sequential/kidneys/D1M2_R": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/kidneys/D1M2_R"
+      },
+      "Sequential/kidneys/D7M1_R": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/kidneys/D7M1_R"
+      },
+      "Sequential/tumors/D7M2": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/tumors/D7M2"
+      },
+      "Sequential/tumors/D1M1": {
+        "file_count": 15,
+        "files": [
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/tumors/D1M1"
+      },
+      "Sequential/tumors/D1M2": {
+        "file_count": 12,
+        "files": [
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/tumors/D1M2"
+      },
+      "Sequential/tumors/D7M1": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/Sequential/tumors/D7M1"
+      },
+      "3D/kidney/D7M2(P2)_L": {
+        "file_count": 15,
+        "files": [
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/kidney/D7M2(P2)_L"
+      },
+      "3D/kidney/D7M2(P1)_L": {
+        "file_count": 12,
+        "files": [
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/kidney/D7M2(P1)_L"
+      },
+      "3D/kidney/D1M1(P1)_R": {
+        "file_count": 17,
+        "files": [
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/kidney/D1M1(P1)_R"
+      },
+      "3D/kidney/D1M1(P2)_R": {
+        "file_count": 7,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_6.tif",
+          "mBq_corr_5.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/kidney/D1M1(P2)_R"
+      },
+      "3D/kidney/D7M2(P1)_R": {
+        "file_count": 12,
+        "files": [
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/kidney/D7M2(P1)_R"
+      },
+      "3D/kidney/D1M1(P2)_L": {
+        "file_count": 7,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_6.tif",
+          "mBq_corr_5.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/kidney/D1M1(P2)_L"
+      },
+      "3D/kidney/D1M1(P1)_L": {
+        "file_count": 17,
+        "files": [
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/kidney/D1M1(P1)_L"
+      },
+      "3D/kidney/D7M2(P2)_R": {
+        "file_count": 15,
+        "files": [
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/kidney/D7M2(P2)_R"
+      },
+      "3D/tumor/D7M2": {
+        "file_count": 24,
+        "files": [
+          "mBq_corr_23.tif",
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/tumor/D7M2"
+      },
+      "3D/tumor/D1M1": {
+        "file_count": 26,
+        "files": [
+          "mBq_corr_23.tif",
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/tumor/D1M1"
+      },
+      "3D/tumor/D1M2": {
+        "file_count": 31,
+        "files": [
+          "mBq_corr_23.tif",
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/tumor/D1M2"
+      },
+      "3D/tumor/D7M1": {
+        "file_count": 26,
+        "files": [
+          "mBq_corr_23.tif",
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/iQID/3D/tumor/D7M1"
+      }
+    },
+    "datapush1_he": {
+      "Upper and Lower from 10um Sequential sections": {
+        "file_count": 20,
+        "files": [
+          "D1-M1-Seq-Kidney-Upper_c820cf62-844f-485e-bcdd-7c12af7eef9d_scene_1of2.tif",
+          "7D-M2-Seq-Kidney-Lower_bce904de-c435-4b6c-a63f-72f1c8a7c203_scene_1of1.tif",
+          "D1-M2-Seq-Kidney-Lower_5867ae39-2a25-4483-98fb-fcf8a3e043ea_scene_1of2.tif",
+          "D1-M2-Seq-Kidney-Upper_eccc7ad4-1915-431d-8c29-c97f5fe0f336_scene_2of2.tif",
+          "D1-M2-Seq-Kidney-Upper_eccc7ad4-1915-431d-8c29-c97f5fe0f336_scene_1of2.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/HE/Upper and Lower from 10um Sequential sections"
+      },
+      "3D/kidney/D1M1_L": {
+        "file_count": 18,
+        "files": [
+          "P6L.tif",
+          "P11L.tif",
+          "P18L.tif",
+          "P16L.tif",
+          "P15L.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/HE/3D/kidney/D1M1_L"
+      },
+      "3D/kidney/D7M1_L": {
+        "file_count": 27,
+        "files": [
+          "P6L.tif",
+          "P11L.tif",
+          "P18L.tif",
+          "P16L.tif",
+          "P15L.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/HE/3D/kidney/D7M1_L"
+      },
+      "3D/kidney/D1M1_R": {
+        "file_count": 18,
+        "files": [
+          "P10R.tif",
+          "P17R.tif",
+          "P12R.tif",
+          "P11R.tif",
+          "P6R.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/HE/3D/kidney/D1M1_R"
+      },
+      "3D/kidney/D7M1_R": {
+        "file_count": 27,
+        "files": [
+          "P10R.tif",
+          "P17R.tif",
+          "P27R.tif",
+          "P12R.tif",
+          "P26R.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/HE/3D/kidney/D7M1_R"
+      },
+      "3D/tumor/D1 M1 tumor 200um": {
+        "file_count": 26,
+        "files": [
+          "D1-M1-200-T1-P25_62b0ee03-df5b-4531-af48-6ee4d8927c0b.tif",
+          "D1-M1-200-T1-P3_d2e7bccb-9d74-4bce-81a4-939e781098fe.tif",
+          "D1-M1-200-T1-P17_c46cc427-6e50-4f38-a554-dc1bd10645a2.tif",
+          "D1-M1-200-T1-P8_7dafa5ce-a263-463a-a356-348d4260a616.tif",
+          "D1-M1-200-T1-P10_a8cd3ffe-9a3b-4039-a360-dc78c182da2f.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/HE/3D/tumor/D1 M1 tumor 200um"
+      },
+      "3D/tumor/D1 M2 tumor 200um": {
+        "file_count": 32,
+        "files": [
+          "D1-M2-200-T2-P12_9907812b-6725-42a4-a7d3-9403309c6ba7.tif",
+          "D1-M2-200-T2-P30_2624872e-9ab9-431f-a7df-e1a8a412b37a.tif",
+          "D1-M2-200-T2-P6_584034fc-c0e1-458b-874a-5644654c32cb.tif",
+          "D1-M2-200-T2-P25_d2aee629-db4c-4b49-934e-8a11865dafbd.tif",
+          "D1-M2-200-T2-P28_18719566-c75d-44bb-bd11-e666d3249242.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/HE/3D/tumor/D1 M2 tumor 200um"
+      },
+      "3D/tumor/D7 M1 tumor": {
+        "file_count": 24,
+        "files": [
+          "7D-M1-200-T1-P8_ca78a28f-b57e-43cf-8fa5-d4378def4b39.tif",
+          "7D-M1-200-T1-P7_f74a4533-15cb-4363-8b23-5d9ae5f5716e.tif",
+          "7D-M1-200-T1-P6_19ad47f4-89f6-4b6a-b9c9-a4e6c7356c61.tif",
+          "7D-M1-200-T1-P4_2bfdfd96-c1c6-4369-8e3a-77fbb3a7f767.tif",
+          "7D-M1-200-T1-P3_5dacc19f-ebce-4950-8c3b-d6339523a25c.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/DataPush1/HE/3D/tumor/D7 M1 tumor"
+      }
+    },
+    "reupload_iqid": {
+      "iQID_reupload/iQID/Sequential/kidneys/D1M1_L": {
+        "file_count": 1,
+        "files": [
+          "0_D1M1K_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M1_L"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D1M1_L/2_aligned": {
+        "file_count": 12,
+        "files": [
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M1_L/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D1M1_L/1_segmented": {
+        "file_count": 12,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M1_L/1_segmented"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M1_L": {
+        "file_count": 1,
+        "files": [
+          "0_D7_M1T_M2T_M1K_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M1_L"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M1_L/2_aligned": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M1_L/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M1_L/1_segmented": {
+        "file_count": 10,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M1_L/1_segmented"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D1M1_R": {
+        "file_count": 1,
+        "files": [
+          "0_D1M1K_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M1_R"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D1M1_R/2_aligned": {
+        "file_count": 12,
+        "files": [
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M1_R/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D1M1_R/1_segmented": {
+        "file_count": 12,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M1_R/1_segmented"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D1M2_L": {
+        "file_count": 1,
+        "files": [
+          "0_D1M2K_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M2_L"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D1M2_L/2_aligned": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M2_L/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D1M2_L/1_segmented": {
+        "file_count": 10,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M2_L/1_segmented"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M2_L": {
+        "file_count": 1,
+        "files": [
+          "0_D1M2K_D7M2K_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M2_L"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M2_L/2_aligned": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M2_L/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M2_L/1_segmented": {
+        "file_count": 10,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M2_L/1_segmented"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M2_R": {
+        "file_count": 1,
+        "files": [
+          "0_D1M2K_D7M2K_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M2_R"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M2_R/2_aligned": {
+        "file_count": 8,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_6.tif",
+          "mBq_corr_5.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M2_R/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M2_R/1_segmented": {
+        "file_count": 10,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M2_R/1_segmented"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D1M2_R": {
+        "file_count": 1,
+        "files": [
+          "0_D1M2K_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M2_R"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D1M2_R/2_aligned": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M2_R/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D1M2_R/1_segmented": {
+        "file_count": 10,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D1M2_R/1_segmented"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M1_R": {
+        "file_count": 1,
+        "files": [
+          "0_D7_M1T_M2T_M1K_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M1_R"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M1_R/2_aligned": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M1_R/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/kidneys/D7M1_R/1_segmented": {
+        "file_count": 10,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/kidneys/D7M1_R/1_segmented"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D7M2": {
+        "file_count": 1,
+        "files": [
+          "0_D7_M1T_M2T_M1K_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D7M2"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D7M2/2_aligned": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D7M2/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D7M2/1_segmented": {
+        "file_count": 10,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D7M2/1_segmented"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D1M1": {
+        "file_count": 1,
+        "files": [
+          "0_D1_M1T_M2T_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D1M1"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D1M1/2_aligned": {
+        "file_count": 15,
+        "files": [
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D1M1/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D1M1/1_segmented": {
+        "file_count": 15,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D1M1/1_segmented"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D1M2": {
+        "file_count": 1,
+        "files": [
+          "0_D1_M1T_M2T_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D1M2"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D1M2/2_aligned": {
+        "file_count": 12,
+        "files": [
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D1M2/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D1M2/1_segmented": {
+        "file_count": 12,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D1M2/1_segmented"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D7M1": {
+        "file_count": 1,
+        "files": [
+          "0_D7_M1T_M2T_M1K_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D7M1"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D7M1/2_aligned": {
+        "file_count": 10,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif",
+          "mBq_corr_6.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D7M1/2_aligned"
+      },
+      "iQID_reupload/iQID/Sequential/tumors/D7M1/1_segmented": {
+        "file_count": 10,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/Sequential/tumors/D7M1/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P2)_L": {
+        "file_count": 1,
+        "files": [
+          "0_D7_M2K(P2)_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P2)_L"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P2)_L/2_aligned": {
+        "file_count": 15,
+        "files": [
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P2)_L/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P2)_L/1_segmented": {
+        "file_count": 6,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_5.tif",
+          "mBq_2.tif",
+          "mBq_1.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P2)_L/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P1)_L": {
+        "file_count": 1,
+        "files": [
+          "0_D1M1K(P2)_D7M2K(P1)_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P1)_L"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P1)_L/2_aligned": {
+        "file_count": 12,
+        "files": [
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P1)_L/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P1)_L/1_segmented": {
+        "file_count": 7,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_5.tif",
+          "mBq_0.tif",
+          "mBq_2.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P1)_L/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P1)_L/LR_ims": {
+        "file_count": 5,
+        "files": [
+          "mBq_3.tif",
+          "mBq_5.tif",
+          "mBq_2.tif",
+          "mBq_1.tif",
+          "mBq_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P1)_L/LR_ims"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P1)_R": {
+        "file_count": 1,
+        "files": [
+          "0_D1M1K(P1)_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P1)_R"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P1)_R/2_aligned": {
+        "file_count": 17,
+        "files": [
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P1)_R/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P1)_R/1_segmented": {
+        "file_count": 17,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P1)_R/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P2)_R": {
+        "file_count": 1,
+        "files": [
+          "0_D1M1K(P2)_D7M2K(P1)_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P2)_R"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P2)_R/2_aligned": {
+        "file_count": 7,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_6.tif",
+          "mBq_corr_5.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P2)_R/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P2)_R/1_segmented": {
+        "file_count": 7,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_5.tif",
+          "mBq_2.tif",
+          "mBq_7.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P2)_R/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P1)_R": {
+        "file_count": 1,
+        "files": [
+          "0_D1M1K(P2)_D7M2K(P1)_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P1)_R"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P1)_R/2_aligned": {
+        "file_count": 12,
+        "files": [
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_8.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P1)_R/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P1)_R/1_segmented": {
+        "file_count": 7,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_5.tif",
+          "mBq_0.tif",
+          "mBq_2.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P1)_R/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P1)_R/LR_ims": {
+        "file_count": 5,
+        "files": [
+          "mBq_3.tif",
+          "mBq_5.tif",
+          "mBq_2.tif",
+          "mBq_1.tif",
+          "mBq_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P1)_R/LR_ims"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P2)_L": {
+        "file_count": 1,
+        "files": [
+          "0_D1M1K(P2)_D7M2K(P1)_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P2)_L"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P2)_L/2_aligned": {
+        "file_count": 7,
+        "files": [
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif",
+          "mBq_corr_6.tif",
+          "mBq_corr_5.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P2)_L/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P2)_L/1_segmented": {
+        "file_count": 7,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_5.tif",
+          "mBq_2.tif",
+          "mBq_7.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P2)_L/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P1)_L": {
+        "file_count": 1,
+        "files": [
+          "0_D1M1K(P1)_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P1)_L"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P1)_L/2_aligned": {
+        "file_count": 17,
+        "files": [
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P1)_L/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/kidney/D1M1(P1)_L/1_segmented": {
+        "file_count": 17,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D1M1(P1)_L/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P2)_R": {
+        "file_count": 1,
+        "files": [
+          "0_D7_M2K(P2)_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P2)_R"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P2)_R/2_aligned": {
+        "file_count": 15,
+        "files": [
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif",
+          "mBq_corr_4.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P2)_R/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/kidney/D7M2(P2)_R/1_segmented": {
+        "file_count": 6,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_5.tif",
+          "mBq_2.tif",
+          "mBq_1.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/kidney/D7M2(P2)_R/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/tumor/D7M2": {
+        "file_count": 1,
+        "files": [
+          "0_D7_M2T_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D7M2"
+      },
+      "iQID_reupload/iQID/3D/tumor/D7M2/2_aligned": {
+        "file_count": 24,
+        "files": [
+          "mBq_corr_23.tif",
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D7M2/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/tumor/D7M2/1_segmented": {
+        "file_count": 24,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D7M2/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/tumor/D1M1": {
+        "file_count": 1,
+        "files": [
+          "0_D1M1T_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D1M1"
+      },
+      "iQID_reupload/iQID/3D/tumor/D1M1/2_aligned": {
+        "file_count": 26,
+        "files": [
+          "mBq_corr_23.tif",
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D1M1/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/tumor/D1M1/1_segmented": {
+        "file_count": 26,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D1M1/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/tumor/D1M2": {
+        "file_count": 1,
+        "files": [
+          "0_D1M2T_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D1M2"
+      },
+      "iQID_reupload/iQID/3D/tumor/D1M2/2_aligned": {
+        "file_count": 31,
+        "files": [
+          "mBq_corr_23.tif",
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D1M2/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/tumor/D1M2/1_segmented": {
+        "file_count": 31,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D1M2/1_segmented"
+      },
+      "iQID_reupload/iQID/3D/tumor/D7M1": {
+        "file_count": 1,
+        "files": [
+          "0_D7_M1T_iqid_event_image.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D7M1"
+      },
+      "iQID_reupload/iQID/3D/tumor/D7M1/2_aligned": {
+        "file_count": 26,
+        "files": [
+          "mBq_corr_23.tif",
+          "mBq_corr_12.tif",
+          "mBq_corr_11.tif",
+          "mBq_corr_2.tif",
+          "mBq_corr_1.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D7M1/2_aligned"
+      },
+      "iQID_reupload/iQID/3D/tumor/D7M1/1_segmented": {
+        "file_count": 26,
+        "files": [
+          "mBq_3.tif",
+          "mBq_6.tif",
+          "mBq_8.tif",
+          "mBq_5.tif",
+          "mBq_0.tif"
+        ],
+        "full_path": "/home/wxc151/iqid-alphas/data/ReUpload/iQID_reupload/iQID/3D/tumor/D7M1/1_segmented"
+      }
+    },
+    "total_files": 1214,
+    "sample_pairs": [],
+    "data_structure": {}
+  },
+  "pipeline_tests": {
+    "data_loading": {
+      "successful_loads": 5,
+      "failed_loads": 0,
+      "file_characteristics": {
+        "mBq_corr_11.tif": {
+          "shape": [
+            145,
+            161
+          ],
+          "dtype": "float64",
+          "size_mb": 0.17810821533203125,
+          "min_value": 0.0,
+          "max_value": 0.14297482966640263,
+          "mean_value": 0.011389144040196359,
+          "load_time_sec": 0.000453
+        },
+        "mBq_corr_2.tif": {
+          "shape": [
+            165,
+            161
+          ],
+          "dtype": "float64",
+          "size_mb": 0.20267486572265625,
+          "min_value": 0.0,
+          "max_value": 0.10052245671276401,
+          "mean_value": 0.005028960849661713,
+          "load_time_sec": 0.000499
+        },
+        "D1-M1-Seq-Kidney-Upper_c820cf62-844f-485e-bcdd-7c12af7eef9d_scene_1of2.tif": {
+          "shape": [
+            4006,
+            4821,
+            3
+          ],
+          "dtype": "uint8",
+          "size_mb": 55.25472450256348,
+          "min_value": 0.0,
+          "max_value": 255.0,
+          "mean_value": 185.32567310963998,
+          "load_time_sec": 0.011962
+        },
+        "P6L.tif": {
+          "shape": [
+            6252,
+            8203,
+            3
+          ],
+          "dtype": "uint8",
+          "size_mb": 146.72800827026367,
+          "min_value": 0.0,
+          "max_value": 255.0,
+          "mean_value": 197.59996121164832,
+          "load_time_sec": 0.038065
+        }
+      },
+      "loading_errors": [],
+      "performance_metrics": {}
+    },
+    "simple_pipeline": {
+      "tests_run": 3,
+      "successful_processes": 0,
+      "failed_processes": 3,
+      "processing_errors": [
+        {
+          "file": "mBq_corr_11.tif",
+          "error": "'SimplePipeline' object has no attribute 'process_iqid_image'"
+        },
+        {
+          "file": "mBq_corr_2.tif",
+          "error": "'SimplePipeline' object has no attribute 'process_iqid_image'"
+        },
+        {
+          "file": "mBq_corr_11.tif",
+          "error": "'SimplePipeline' object has no attribute 'process_iqid_image'"
+        }
+      ],
+      "quality_scores": [],
+      "processing_times": [],
+      "average_quality": 0,
+      "quality_std": 0,
+      "average_time": 0,
+      "success_rate": 0.0
+    },
+    "advanced_pipeline": {
+      "tests_run": 2,
+      "successful_processes": 0,
+      "failed_processes": 2,
+      "processing_errors": [
+        {
+          "pair": "Pair 1",
+          "error": "'AdvancedPipeline' object has no attribute 'process_paired_images'"
+        },
+        {
+          "pair": "Pair 2",
+          "error": "'AdvancedPipeline' object has no attribute 'process_paired_images'"
+        }
+      ],
+      "quality_scores": [],
+      "processing_times": [],
+      "average_quality": 0,
+      "average_time": 0,
+      "success_rate": 0.0
+    },
+    "core_components": {
+      "processor_tests": {
+        "success": 0,
+        "total": 2,
+        "errors": [
+          "'IQIDProcessor' object has no attribute 'process_image'",
+          "'IQIDProcessor' object has no attribute 'process_image'"
+        ]
+      },
+      "aligner_tests": {
+        "success": 1,
+        "total": 1,
+        "errors": []
+      },
+      "segmenter_tests": {
+        "success": 1,
+        "total": 1,
+        "errors": []
+      }
+    }
+  },
+  "quality_metrics": {
+    "scores": {
+      "data_discovery": 100,
+      "data_loading": 100.0,
+      "pipeline_performance": 0.0,
+      "core_components": 66.66666666666667,
+      "overall": 63.333333333333336
+    }
+  },
+  "performance_metrics": {}
+}

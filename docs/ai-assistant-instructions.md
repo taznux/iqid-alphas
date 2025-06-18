@@ -48,7 +48,8 @@
 - **Visualization Guidelines**: `docs/technical/visualization_guidelines.md`
 - **Example Workflows**: `examples/basic_usage.py`, `examples/advanced_workflow.py`
 - **UCSF Integration**: `examples/ucsf_consolidated/` and `docs/examples/ucsf_workflows.md`
-- **Batch Processing System**: `examples/ucsf_consolidated/BATCH_PROCESSING_GUIDE.md`
+- **Batch Processing**: `examples/ucsf_consolidated/ucsf_batch_processor.py` for processing all samples
+- **Visualization Guidelines**: `docs/technical/visualization_guidelines.md`
 
 ## 5. Key Package Components
 
@@ -73,12 +74,18 @@
 - `AdvancedEvaluator`: Detailed quality assessment
 - Production validation and performance benchmarking
 
-### UCSF Batch Processing System (`examples/ucsf_consolidated/`)
+### UCSF Integration (`examples/ucsf_consolidated/`)
 - `UCSFBatchProcessor`: Automated batch processing of all UCSF samples
-- Automatic sample discovery and matching between H&E and iQID data
-- Individual sample processing with comprehensive quality assessment
-- Batch summary visualizations and statistical analysis across all samples
-- Support for both real UCSF data and mock data for testing
+- `ucsf_consolidated_workflow.py`: Main workflow implementation
+- `run_batch_processing.py`: High-level batch processing runner
+- `run_and_validate.py`: Validation and testing runner
+- Comprehensive configuration management in `configs/`
+
+### Testing Framework (`iqid_alphas/tests/`)
+- **Unit Tests** (`core/`, `pipelines/`): Component-level testing
+- **Integration Tests** (`integration/`): End-to-end workflow testing
+- **CLI Tests**: Command-line interface validation
+- Consolidated testing strategy with unified test organization
 
 ## 6. Scientific Context
 

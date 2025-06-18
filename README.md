@@ -1,43 +1,61 @@
 # IQID-Alphas
 
-**🎉 PRODUCTION READY - Version 1.0.0 ✅**
+![Production Ready](https://img.shields.io/badge/status-production%20ready-brightgreen)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 A modern, comprehensive Python package for quantitative imaging analysis using iQID (Imaging Quantitative ID) cameras and H&E histology images. This system provides end-to-end processing from raw data to publication-ready analyses with a clean, modular architecture.
 
 **Authors:** Robin Peter, Brian Miller  
-**Production Release:** December 2024
+**Production Release:** June 2025  
+**Status:** Production Ready - Streamlined and Optimized
 
 ## 🚀 Quick Start
 
+### Python API
+```python
+# Install and import
+import iqid_alphas
+
+# Simple usage with the new API
+pipeline = iqid_alphas.SimplePipeline()
+results = pipeline.process('path/to/data')
+
+# Or use the advanced pipeline
+pipeline = iqid_alphas.AdvancedPipeline()
+results = pipeline.process('path/to/data', 'path/to/config.json')
+```
+
+### Command Line Interface
 ```bash
 # Clone and install
 git clone <repository-url>
 cd iqid-alphas
 pip install -r requirements.txt
 
-# Simple usage with the new API
-python -c "
-import iqid_alphas
-pipeline = iqid_alphas.SimplePipeline()
-results = pipeline.process('path/to/data')
-"
+# Discover available data
+python -m iqid_alphas.cli discover --data /path/to/ucsf_data
 
-# Or use the advanced pipeline
-python -c "
-import iqid_alphas
-pipeline = iqid_alphas.AdvancedPipeline()
-results = pipeline.process('path/to/data', 'path/to/config.json')
-"
+# Process with batch CLI
+python -m iqid_alphas.cli process --data /path/to/ucsf_data --config configs/cli_batch_config.json
+
+# Quick test processing
+python -m iqid_alphas.cli process --data /path/to/data --config configs/cli_quick_config.json --max-samples 5
 ```
 
 ## 📋 What's New in Version 1.0.0
 
+- ✅ **Streamlined Architecture**: Removed duplicate and obsolete code, cleaned repository structure
+- ✅ **Unified Testing**: Consolidated all tests in `iqid_alphas/tests/` with comprehensive coverage
+- ✅ **Production CLI**: Advanced command-line interface for batch processing and discovery
+- ✅ **Clean Repository**: Removed old test outputs, evaluation artifacts, and redundant files
+- ✅ **Updated Documentation**: Comprehensive user guides and API references
+- ✅ **UCSF Integration**: Optimized workflows for UCSF data processing
 - ✅ **Modern Package Structure**: Clean, importable `iqid_alphas` Python package
 - ✅ **Simple API**: Easy-to-use classes with sensible defaults
 - ✅ **Modular Design**: Core, pipelines, and visualization components
 - ✅ **Production Ready**: Comprehensive error handling and validation
 - ✅ **Documentation**: Complete API reference and examples
-- ✅ **Backwards Compatibility**: Legacy scripts preserved in archive/
 
 ## 📚 Papers and Citations
 - (2022, Sci Rep, initial methods): https://doi.org/10.1038/s41598-022-22664-5
@@ -47,12 +65,13 @@ Permanent DOI of the initial repository release in 2022: [![DOI](https://zenodo.
 
 ## 📦 Package Structure
 
-The repository is now organized as a modern Python package:
+The repository is now organized as a streamlined Python package:
 
 ```
 iqid-alphas/
 ├── iqid_alphas/                 # Main Python package
 │   ├── __init__.py             # Package API
+│   ├── cli.py                  # Command-line interface
 │   ├── core/                   # Core processing modules
 │   │   ├── processor.py        # Main IQIDProcessor class
 │   │   ├── alignment.py        # Image alignment utilities
@@ -61,17 +80,20 @@ iqid-alphas/
 │   │   ├── simple.py          # Simple processing pipeline
 │   │   ├── advanced.py        # Advanced processing pipeline
 │   │   └── combined.py        # Combined H&E-iQID pipeline
+│   ├── tests/                  # Comprehensive test suite
+│   │   ├── core/              # Core module tests
+│   │   ├── pipelines/         # Pipeline tests
+│   │   └── integration/       # Integration tests
 │   ├── utils/                  # Utility functions
 │   └── visualization/          # Plotting and visualization
 │       └── plotter.py         # Visualizer class
 │
-├── examples/                   # Usage examples
-├── tests/                      # Test suite
-├── docs/                       # Documentation
+├── examples/                   # Usage examples and workflows
+│   └── ucsf_consolidated/     # UCSF workflow examples
+├── docs/                       # Comprehensive documentation
 ├── configs/                    # Configuration files
-├── data/                       # Sample data directory
-├── archive/                    # Legacy code (preserved)
-└── src/                        # Legacy source (preserved)
+├── evaluation/                 # Performance evaluation tools
+└── requirements.txt           # Python dependencies
 ```
 
 ## 🔧 API Reference
@@ -249,10 +271,16 @@ We welcome contributions! Please see our contribution guidelines:
 pip install -e .
 
 # Install development dependencies
-pip install -r requirements-dev.txt
+pip install -r requirements.txt
 
-# Run tests before submitting
-python -m pytest tests/
+# Run CLI tests
+python -m unittest iqid_alphas.tests.test_cli -v
+
+# Run integration tests
+python -m unittest iqid_alphas.tests.integration.test_consolidated_workflow -v
+
+# Run all tests
+python -m unittest discover iqid_alphas.tests -v
 ```
 
 ## 📄 License and Citation
