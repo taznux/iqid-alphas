@@ -4,6 +4,8 @@
 
 This document provides a comprehensive understanding of the UCSF iQID and H&E data structure, processing workflows, and CLI development requirements. This information is critical for proper implementation of the batch processing CLI and pipeline integration.
 
+> **📌 IMPORTANT UPDATE:** The ReUpload dataset structure has been corrected based on the actual dataset organization. The ReUpload data is organized as `ReUpload/3D/tissue/sample/` and `ReUpload/Sequential/tissue/sample/` (not the nested `ReUpload/iQID_reupload/iQID/3D/tissue/sample/` structure as previously documented). This correction affects all evaluation and processing logic.
+
 ## 1. Data Hierarchy and Structure
 
 ### 1.1 Dataset Overview
@@ -54,23 +56,33 @@ DataPush1/
 #### **ReUpload Structure (Full Workflow Dataset):**
 ```
 ReUpload/
-└── iQID_reupload/               # Complete iQID workflow dataset
-    ├── Raw/                     # Original multi-slice images
-    │   ├── sample_001/          # Sample directory
-    │   │   └── raw_image.tif    # Single image with all slices
-    │   └── sample_002/
-    ├── 1_segmented/             # Individual cropped slices
-    │   ├── sample_001/          
-    │   │   ├── slice_0.tif      # Cropped slice 0
-    │   │   ├── slice_1.tif      # Cropped slice 1
-    │   │   └── slice_2.tif      # Cropped slice 2
-    │   └── sample_002/
-    └── 2_aligned/               # Sorted and aligned for 3D
-        ├── sample_001/
-        │   ├── aligned_0.tif    # Aligned slice 0
-        │   ├── aligned_1.tif    # Aligned slice 1  
-        │   └── aligned_2.tif    # Aligned slice 2
-        └── sample_002/
+├── 3D/                          # 3D processing directory
+│   ├── kidney/                  # Tissue type: kidney
+│   │   ├── D1M1(P1)_L/          # Sample: Day 1, Mouse 1, Protocol 1, Left
+│   │   │   ├── 0_D1M1K(P1)_iqid_event_image.tif  # Raw iQID event data
+│   │   │   ├── 1_segmented/     # Segmented slices directory
+│   │   │   │   ├── mBq_0.tif    # Segmented slice 0
+│   │   │   │   ├── mBq_1.tif    # Segmented slice 1
+│   │   │   │   ├── mBq_2.tif    # Segmented slice 2
+│   │   │   │   ├── mBq_3.tif    # Segmented slice 3
+│   │   │   │   └── ...          # Additional slices (up to ~16)
+│   │   │   └── 2_aligned/       # Aligned slices directory
+│   │   │       ├── mBq_corr_0.tif   # Aligned slice 0
+│   │   │       ├── mBq_corr_1.tif   # Aligned slice 1
+│   │   │       ├── mBq_corr_2.tif   # Aligned slice 2
+│   │   │       ├── mBq_corr_3.tif   # Aligned slice 3
+│   │   │       └── ...              # Additional aligned slices
+│   │   ├── D1M1(P1)_R/          # Sample: Day 1, Mouse 1, Protocol 1, Right
+│   │   ├── D1M1(P2)_L/          # Sample: Day 1, Mouse 1, Protocol 2, Left
+│   │   ├── D7M2(P1)_L/          # Sample: Day 7, Mouse 2, Protocol 1, Left
+│   │   └── ...                  # Additional kidney samples
+│   └── tumor/                   # Tissue type: tumor (if present)
+│       └── ...                  # Tumor samples following same structure
+└── Sequential/                  # Sequential processing directory
+    ├── kidney/                  # Tissue type: kidney
+    │   └── ...                  # Sequential kidney samples
+    └── tumor/                   # Tissue type: tumor
+        └── ...                  # Sequential tumor samples
 ```
 
 ### 1.3 Dataset Characteristics Summary
@@ -97,14 +109,37 @@ ReUpload/
 
 ### 1.3 Sample Naming Conventions
 
-#### **iQID Samples:**
-- Format: `D{day}M{mouse}(P{protocol})_{side}`
-- Examples: `D1M1(P1)_L`, `D7M2(P2)_R`
-- Note: Protocol notation `(P*)` used in iQID but not H&E
+#### **iQID Sample Naming Format:** `D{day}M{mouse}(P{part})_{tissue}`
 
-#### **H&E Samples:**
-- Format: `D{day}M{mouse}_{side}` or `D{day}M{mouse}-T{tumor}_{side}`
-- Examples: `D1M1_L`, `D7M2-T1_R`
+**Component Breakdown:**
+- **D{day}**: Time point (D1 = 1 day post-injection, D7 = 7 days post-injection)
+- **M{mouse}**: Mouse subject number (M1, M2, etc.)
+- **P{part}**: Acquisition part/session (P1, P2, etc.) - indicates multiple imaging sessions for same mouse
+- **_{tissue}**: Tissue type suffix
+  - `_L`: Left kidney (kidney_left)
+  - `_R`: Right kidney (kidney_right)
+  - `_T`: Tumor
+
+**Examples:**
+- `D1M1(P1)_L` = Day 1, Mouse 1, Part 1, Left kidney
+- `D7M2(P2)_R` = Day 7, Mouse 2, Part 2, Right kidney
+- `D1M1(P1)_T` = Day 1, Mouse 1, Part 1, Tumor
+
+#### **Common ID Grouping for Tissue Separation:**
+Samples with the same `D{day}M{mouse}(P{part})` prefix should share the same raw image and represent different tissue types separated from a single acquisition. For example:
+- `D1M1(P1)_L`, `D1M1(P1)_R`, `D1M1(P1)_T` would all be extracted from the same raw iQID image
+- The raw image contains a grid layout with all tissue types that need to be separated
+
+#### **Typical iQID Grid Layout in Raw Images:**
+Based on the tissue arrangement described:
+- **Row 1**: 4 tumor slices (higher intensity, higher activity level)
+- **Row 2-3**: Left and right kidney slices (upper sections)  
+- **Row 4-5**: Left and right kidney slices (lower sections)
+- **Total**: Typically 12 samples arranged in a 3×4 or 4×3 grid
+
+#### **H&E Samples (DataPush1 only):**
+- Format: `D{day}M{mouse}_{tissue}` (part notation typically omitted)
+- Examples: `D1M1_L`, `D7M2_R`
 
 #### **Sample Pairing Logic:**
 - Remove `(P*)` from iQID names to match H&E: `D1M1(P1)_L` → `D1M1_L`
@@ -122,20 +157,22 @@ slice image      cropped       aligned       volumetric
 ```
 
 #### **Stage 1: Raw Data**
-- **Location**: `Raw/` directory
+- **Location**: Sample directory root (e.g., `D1M1(P1)_L/`)
 - **Format**: Single TIFF image containing all tissue slices
+- **File Pattern**: `0_*_iqid_event_image.tif` (e.g., `0_D1M1K(P1)_iqid_event_image.tif`)
 - **Characteristics**: Multi-slice data in one file, requires cropping
 
 #### **Stage 2: Segmentation** 
-- **Location**: `1_segmented/` directory
+- **Location**: `1_segmented/` subdirectory within each sample
 - **Process**: Crop individual slices from raw multi-slice image
 - **Output**: Separate TIFF files for each tissue slice
-- **Files**: `mBq_corr_0.tif`, `mBq_corr_1.tif`, etc.
+- **Files**: `mBq_0.tif`, `mBq_1.tif`, `mBq_2.tif`, etc.
 
 #### **Stage 3: Alignment**
-- **Location**: `2_aligned/` directory  
+- **Location**: `2_aligned/` subdirectory within each sample  
 - **Process**: Sort slices by anatomical position and align for 3D reconstruction
 - **Output**: Spatially aligned slice stack ready for volumetric analysis
+- **Files**: `mBq_corr_0.tif`, `mBq_corr_1.tif`, `mBq_corr_2.tif`, etc.
 - **Purpose**: Enables accurate 3D tissue reconstruction
 
 ### 2.2 Processing Stage Priorities
@@ -182,7 +219,7 @@ The CLI must understand and handle both dataset types:
 def detect_dataset_type(data_path):
     if "DataPush1" in str(data_path):
         return "production"  # Aligned data ready for analysis
-    elif "ReUpload" in str(data_path) or "iQID_reupload" in str(data_path):
+    elif "ReUpload" in str(data_path):
         return "workflow"    # Full workflow data available
     else:
         return "unknown"
@@ -195,8 +232,8 @@ def detect_processing_stage(sample_dir, dataset_type):
         # DataPush1: Only aligned data available
         return "aligned_ready"
     elif dataset_type == "workflow":
-        # ReUpload: Check for workflow stages
-        if (sample_dir / "Raw").exists():
+        # ReUpload: Check for workflow stages within sample directory
+        if any(sample_dir.glob("0_*_iqid_event_image.tif")):
             return "raw_available"
         elif (sample_dir / "1_segmented").exists():
             return "segmented_available" 
@@ -322,7 +359,7 @@ quality_metrics = {
 
 ### 5.2 Phase 2: CLI Data Discovery Enhancement
 #### **Required Updates:**
-1. **Stage Detection**: Identify Raw/1_segmented/2_aligned directories
+1. **Stage Detection**: Identify raw event files, 1_segmented/, and 2_aligned/ subdirectories
 2. **Processing Readiness**: Determine what processing can be performed
 3. **Multi-Stage Reporting**: Show available processing stages per sample
 4. **3D Capability Flags**: Identify samples ready for volumetric analysis
@@ -414,6 +451,11 @@ Paired samples: 0 (single-modal dataset)
    - 5 samples need segmentation (raw → segmented)
    - 5 samples need alignment (segmented → aligned)
    - 15 samples ready for 3D reconstruction
+
+🗂️ Structure Analysis:
+   - Root path: data/ReUpload/3D/ (corrected structure)
+   - Tissue directories: kidney/, tumor/
+   - Sample format: D{day}M{mouse}(P{protocol})_{side}/
 ```
 
 ### 7.2 Processing Command Enhancement
