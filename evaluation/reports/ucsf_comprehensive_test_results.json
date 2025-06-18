@@ -1,0 +1,321 @@
+{
+  "timestamp": "2025-06-18T17:14:51.382713",
+  "dataset": "UCSF Real Data",
+  "total_samples_tested": 10,
+  "pipeline_tests": {
+    "simple_pipeline": {
+      "pipeline_name": "SimplePipeline",
+      "tests_run": 5,
+      "successful_processes": 0,
+      "failed_processes": 5,
+      "processing_times": [],
+      "quality_scores": [],
+      "errors": [
+        {
+          "file": "mBq_corr_11.tif",
+          "error": "'IQIDProcessor' object has no attribute 'process_image'"
+        },
+        {
+          "file": "mBq_corr_2.tif",
+          "error": "'IQIDProcessor' object has no attribute 'process_image'"
+        },
+        {
+          "file": "mBq_corr_11.tif",
+          "error": "'IQIDProcessor' object has no attribute 'process_image'"
+        },
+        {
+          "file": "mBq_corr_2.tif",
+          "error": "'IQIDProcessor' object has no attribute 'process_image'"
+        },
+        {
+          "file": "mBq_corr_2.tif",
+          "error": "'IQIDProcessor' object has no attribute 'process_image'"
+        }
+      ],
+      "sample_details": [],
+      "avg_quality": 0,
+      "std_quality": 0,
+      "avg_processing_time": 0,
+      "success_rate": 0.0
+    },
+    "core_components": {
+      "processor_test": {
+        "success": 0,
+        "total": 3,
+        "errors": [
+          "'IQIDProcessor' object has no attribute 'process_image'",
+          "'IQIDProcessor' object has no attribute 'process_image'",
+          "'IQIDProcessor' object has no attribute 'process_image'"
+        ],
+        "times": []
+      },
+      "aligner_test": {
+        "success": 2,
+        "total": 2,
+        "errors": [],
+        "times": [
+          0.007138,
+          0.006164
+        ]
+      },
+      "segmenter_test": {
+        "success": 2,
+        "total": 2,
+        "errors": [],
+        "times": [
+          0.003567,
+          0.002424
+        ]
+      }
+    }
+  },
+  "performance_metrics": {},
+  "quality_scores": {},
+  "data_characteristics": {
+    "file_sizes": [
+      0.17261505126953125,
+      0.17261505126953125,
+      0.20267486572265625,
+      0.20267486572265625,
+      0.17810821533203125,
+      0.17810821533203125,
+      0.20722198486328125,
+      0.20722198486328125,
+      0.31439971923828125,
+      0.31439971923828125
+    ],
+    "image_shapes": [
+      [
+        125,
+        181
+      ],
+      [
+        125,
+        181
+      ],
+      [
+        165,
+        161
+      ],
+      [
+        165,
+        161
+      ],
+      [
+        145,
+        161
+      ],
+      [
+        145,
+        161
+      ],
+      [
+        157,
+        173
+      ],
+      [
+        157,
+        173
+      ],
+      [
+        203,
+        203
+      ],
+      [
+        203,
+        203
+      ]
+    ],
+    "data_types": [
+      "float64",
+      "float64",
+      "float64",
+      "float64",
+      "float64",
+      "float64",
+      "float64",
+      "float64",
+      "float64",
+      "float64"
+    ],
+    "value_ranges": [
+      [
+        0.0,
+        0.14297482966640263
+      ],
+      [
+        0.0,
+        0.16095025769774202
+      ],
+      [
+        0.0,
+        0.10052245671276401
+      ],
+      [
+        0.0,
+        0.08586920787697114
+      ],
+      [
+        0.0,
+        0.14297482966640263
+      ],
+      [
+        0.0,
+        0.1601384244874825
+      ],
+      [
+        0.0,
+        0.1878044735705808
+      ],
+      [
+        0.0,
+        0.18730074385764978
+      ],
+      [
+        0.0,
+        0.10101676198870085
+      ],
+      [
+        0.0,
+        0.09924856101172515
+      ]
+    ],
+    "sample_analysis": [
+      {
+        "filename": "mBq_corr_11.tif",
+        "shape": [
+          125,
+          181
+        ],
+        "dtype": "float64",
+        "size_mb": 0.17261505126953125,
+        "min_value": 0.0,
+        "max_value": 0.14297482966640263,
+        "mean_value": 0.011704188127994957,
+        "std_value": 0.019772592046568636
+      },
+      {
+        "filename": "mBq_corr_2.tif",
+        "shape": [
+          125,
+          181
+        ],
+        "dtype": "float64",
+        "size_mb": 0.17261505126953125,
+        "min_value": 0.0,
+        "max_value": 0.16095025769774202,
+        "mean_value": 0.01149198672396548,
+        "std_value": 0.019193011776666324
+      },
+      {
+        "filename": "mBq_corr_2.tif",
+        "shape": [
+          165,
+          161
+        ],
+        "dtype": "float64",
+        "size_mb": 0.20267486572265625,
+        "min_value": 0.0,
+        "max_value": 0.10052245671276401,
+        "mean_value": 0.005028960849661713,
+        "std_value": 0.01011623957479211
+      },
+      {
+        "filename": "mBq_corr_1.tif",
+        "shape": [
+          165,
+          161
+        ],
+        "dtype": "float64",
+        "size_mb": 0.20267486572265625,
+        "min_value": 0.0,
+        "max_value": 0.08586920787697114,
+        "mean_value": 0.004875565162724064,
+        "std_value": 0.009870782986400447
+      },
+      {
+        "filename": "mBq_corr_11.tif",
+        "shape": [
+          145,
+          161
+        ],
+        "dtype": "float64",
+        "size_mb": 0.17810821533203125,
+        "min_value": 0.0,
+        "max_value": 0.14297482966640263,
+        "mean_value": 0.011389144040196359,
+        "std_value": 0.019585452607152727
+      },
+      {
+        "filename": "mBq_corr_2.tif",
+        "shape": [
+          145,
+          161
+        ],
+        "dtype": "float64",
+        "size_mb": 0.17810821533203125,
+        "min_value": 0.0,
+        "max_value": 0.1601384244874825,
+        "mean_value": 0.007272748608836334,
+        "std_value": 0.01546338760230644
+      },
+      {
+        "filename": "mBq_corr_2.tif",
+        "shape": [
+          157,
+          173
+        ],
+        "dtype": "float64",
+        "size_mb": 0.20722198486328125,
+        "min_value": 0.0,
+        "max_value": 0.1878044735705808,
+        "mean_value": 0.01344292173950901,
+        "std_value": 0.023786267658664945
+      },
+      {
+        "filename": "mBq_corr_1.tif",
+        "shape": [
+          157,
+          173
+        ],
+        "dtype": "float64",
+        "size_mb": 0.20722198486328125,
+        "min_value": 0.0,
+        "max_value": 0.18730074385764978,
+        "mean_value": 0.013065515850998136,
+        "std_value": 0.023043400252856422
+      },
+      {
+        "filename": "mBq_corr_2.tif",
+        "shape": [
+          203,
+          203
+        ],
+        "dtype": "float64",
+        "size_mb": 0.31439971923828125,
+        "min_value": 0.0,
+        "max_value": 0.10101676198870085,
+        "mean_value": 0.0022326692426243963,
+        "std_value": 0.007740335667488614
+      },
+      {
+        "filename": "mBq_corr_1.tif",
+        "shape": [
+          203,
+          203
+        ],
+        "dtype": "float64",
+        "size_mb": 0.31439971923828125,
+        "min_value": 0.0,
+        "max_value": 0.09924856101172515,
+        "mean_value": 0.0022807733086972195,
+        "std_value": 0.007622555615121558
+      }
+    ],
+    "avg_file_size": 0.21500396728515625,
+    "size_range": [
+      0.17261505126953125,
+      0.31439971923828125
+    ]
+  }
+}
