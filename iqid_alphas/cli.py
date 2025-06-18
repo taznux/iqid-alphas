@@ -411,18 +411,28 @@ class IQIDCLIProcessor:
 
     def _extract_tissue_type(self, path_obj: Path) -> str:
         """Extract tissue type from path hierarchy (e.g., kidney, tumor) by checking for keyword containment."""
-        keywords_map = {'kidney': 'kidney', 'kidneys': 'kidney', 'tumor': 'tumor'}
-        # Iterate from deeper to shallower parts of the path for more specific matches first
-        # and also check the sample directory name itself if it's a direct name like "D1M1_L_kidney_data"
-        path_parts_to_check = list(path_obj.parts)
-        if path_obj.name not in path_parts_to_check: # Should typically be the last part
-             path_parts_to_check.append(path_obj.name)
+        keywords_map = {'kidneys': 'kidneys', 'kidney': 'kidney', 'tumor': 'tumor'}
+        
+        # Check the sample directory name itself and all path parts
+        path_parts_to_check = list(path_obj.parts) + [path_obj.name]
+        
+        # Also split the name by underscores to catch patterns like "D1M1_L_kidney_data"
+        name_parts = path_obj.name.split('_')
+        path_parts_to_check.extend(name_parts)
 
-        for part in reversed(path_parts_to_check):
+        for part in path_parts_to_check:
+            low_part = part.lower().strip()
+            for keyword_search, keyword_return in keywords_map.items():
+                if keyword_search.lower() == low_part:  # Exact match
+                    return keyword_return
+        
+        # Second pass for substring matches
+        for part in path_parts_to_check:
             low_part = part.lower()
             for keyword_search, keyword_return in keywords_map.items():
-                if keyword_search in low_part:
+                if keyword_search.lower() in low_part:  # Substring match
                     return keyword_return
+        
         return 'unknown'
 
     def _extract_preprocessing_type(self, path_obj: Path) -> str:
@@ -438,36 +448,6 @@ class IQIDCLIProcessor:
             grandparent_low = path_obj.parts[-3].lower()
             if grandparent_low in ['3d', 'sequential', 'upper', 'lower', 'upper and lower']:
                 return grandparent_low
-        return 'unknown'
-
-    def _extract_laterality(self, sample_name: str) -> str:
-        """Extract laterality (left/right) from sample name."""
-        sample_name_low = sample_name.lower()
-
-        # Check for _L or _R followed by a common separator or end of string
-        if re.search(r'_l([._]|$)', sample_name_low): return 'left'
-        if re.search(r'_r([._]|$)', sample_name_low): return 'right'
-
-        # Check for whole word 'left' or 'right'
-        if 'left' in sample_name_low: return 'left'
-        if 'right' in sample_name_low: return 'right'
-
-        # Fallback for simple L/R suffix if not part of a common word
-        # and preceded by a non-alphabetic character (or start of string implicitly)
-        if sample_name_low.endswith('l'):
-            if len(sample_name_low) == 1: return 'left' # "L"
-            if len(sample_name_low) > 1 and not sample_name_low[-2].isalpha() and \
-               not sample_name_low.endswith("ial") and \
-               not sample_name_low.endswith("nal") and \
-               not sample_name_low.endswith("xel"): # e.g. pixel
-                 return 'left'
-        if sample_name_low.endswith('r'):
-            if len(sample_name_low) == 1: return 'right' # "R"
-            if len(sample_name_low) > 1 and not sample_name_low[-2].isalpha() and \
-               not sample_name_low.endswith("ior") and \
-               not sample_name_low.endswith("lar"): # e.g. similar
-                return 'right'
-
         return 'unknown'
 
     def _list_available_stages(self, sample_dir: Path, dataset_type: str) -> list[str]:
@@ -738,14 +718,6 @@ class IQIDCLIProcessor:
     # Its functionality was merged into the primary _analyze_sample_directory (lines 170-241)
     # and the helper methods below.
 
-    def _extract_tissue_type(self, sample_path: Path) -> str:
-        """Extract tissue type from path hierarchy."""
-        path_parts = sample_path.parts
-        for part in path_parts:
-            if part.lower() in ['kidney', 'tumor', 'kidneys']:
-                return part.lower()
-        return 'unknown'
-    
     def _extract_preprocessing_type(self, sample_path: Path) -> str:
         """Extract preprocessing type from path hierarchy."""
         path_parts = sample_path.parts
@@ -756,10 +728,27 @@ class IQIDCLIProcessor:
     
     def _extract_laterality(self, sample_name: str) -> str:
         """Extract laterality (left/right) from sample name."""
-        if sample_name.endswith('_L') or 'Left' in sample_name:
+        import re
+        sample_name_low = sample_name.lower()
+
+        # Check for _L or _R followed by a common separator or end of string
+        if re.search(r'_l([._]|$)', sample_name_low): 
             return 'left'
-        elif sample_name.endswith('_R') or 'Right' in sample_name:
+        if re.search(r'_r([._]|$)', sample_name_low): 
             return 'right'
+
+        # Check for whole word 'left' or 'right'
+        if 'left' in sample_name_low: 
+            return 'left'
+        if 'right' in sample_name_low: 
+            return 'right'
+
+        # Check for simple L/R at end with underscore or dash
+        if re.search(r'[-_]l$', sample_name_low):
+            return 'left'
+        if re.search(r'[-_]r$', sample_name_low):
+            return 'right'
+
         return 'unknown'
 
 # Removing the second, now redundant, _analyze_sample_directory method.

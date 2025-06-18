@@ -14,7 +14,7 @@ import tempfile
 from pathlib import Path
 
 # Add the parent directory to the path to import the workflow
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'examples', 'ucsf_consolidated'))
 from ucsf_consolidated_workflow import UCSFConsolidatedWorkflow
 
 
@@ -49,18 +49,21 @@ class TestUCSFConsolidatedWorkflow(unittest.TestCase):
             "workflows": {
                 "path1_iqid_raw_to_aligned": {
                     "name": "Test iQID Raw to Aligned",
+                    "input_source": "reupload.iqid_raw",
                     "intermediate_dir": "intermediate/path1_test/",
                     "output_dir": "outputs/path1_test/",
                     "steps": ["load_raw_iqid", "preprocess_frames", "align_sequences"]
                 },
                 "path2_aligned_iqid_he_coregistration": {
                     "name": "Test Aligned iQID + H&E",
+                    "input_source": "datapush1.aligned_iqid",
                     "intermediate_dir": "intermediate/path2_test/",
                     "output_dir": "outputs/path2_test/",
                     "steps": ["load_aligned_iqid", "load_he_images", "registration_alignment"]
                 },
                 "visualization_workflow": {
                     "name": "Test Visualization",
+                    "input_source": "visualization.base_path",
                     "intermediate_dir": "intermediate/viz_test/",
                     "output_dir": "outputs/viz_test/",
                     "steps": ["generate_plots", "create_overlays"]

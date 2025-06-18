@@ -10,15 +10,17 @@
 
 ## 2. Development Workflow
 
-1.  **Understand Existing Code**: Use file search and AI assistance to check for existing functionality before writing new code, especially in the extensive `evaluation/` and `examples/` directories.
+1.  **Understand Existing Code**: Use file search and AI assistance to check for existing functionality before writing new code, especially in the `evaluation/` and `examples/` directories.
 2.  **Follow Architectural Patterns**: Adhere to the established layered architecture:
    - `core/` modules for fundamental processing operations
    - `pipelines/` for workflow orchestration
    - `visualization/` for all plotting and reporting
    - `utils/` for shared utilities
+   - `tests/` for comprehensive testing (unit, integration, CLI)
 3.  **Implement via Pipeline Layer**: Add new functionality through pipeline classes first, then expose specific components if needed.
 4.  **Configuration Integration**: Ensure all new features are configurable through JSON files and follow the established configuration patterns.
-5.  **Comprehensive Testing**: Use the evaluation framework in `evaluation/scripts/` to validate new features and ensure they integrate properly with existing workflows.
+5.  **Comprehensive Testing**: Use the unified testing framework in `iqid_alphas/tests/` to validate new features and ensure they integrate properly with existing workflows.
+6.  **CLI Integration**: Consider CLI interface requirements when adding new functionality to ensure batch processing compatibility.
 
 ## 3. Common Pitfalls to Avoid
 
@@ -72,11 +74,18 @@
 - `AdvancedEvaluator`: Detailed quality assessment
 - Production validation and performance benchmarking
 
-### Batch Processing System (`examples/ucsf_consolidated/`)
-- `UCSFBatchProcessor`: Automated processing of all available samples
-- Comprehensive visualization suite with individual and summary plots
-- Quality assessment and statistical analysis across entire dataset
-- Organized output structure with detailed reporting
+### UCSF Integration (`examples/ucsf_consolidated/`)
+- `UCSFBatchProcessor`: Automated batch processing of all UCSF samples
+- `ucsf_consolidated_workflow.py`: Main workflow implementation
+- `run_batch_processing.py`: High-level batch processing runner
+- `run_and_validate.py`: Validation and testing runner
+- Comprehensive configuration management in `configs/`
+
+### Testing Framework (`iqid_alphas/tests/`)
+- **Unit Tests** (`core/`, `pipelines/`): Component-level testing
+- **Integration Tests** (`integration/`): End-to-end workflow testing
+- **CLI Tests**: Command-line interface validation
+- Consolidated testing strategy with unified test organization
 
 ## 6. Scientific Context
 

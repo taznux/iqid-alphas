@@ -696,7 +696,9 @@ class UCSFConsolidatedWorkflow:
     def _save_workflow_results(self, results: Dict):
         """Save comprehensive workflow results."""
         base_dir = Path(os.path.dirname(self.config_path)) / '..'
-        results_file = base_dir / 'reports' / f'consolidated_workflow_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
+        reports_dir = base_dir / 'reports'
+        reports_dir.mkdir(exist_ok=True)  # Ensure reports directory exists
+        results_file = reports_dir / f'consolidated_workflow_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
         
         with open(results_file, 'w') as f:
             json.dump(results, f, indent=2)
