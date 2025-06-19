@@ -144,7 +144,8 @@ This tracker reflects the new migration-focused tasks.
 | Task ID | Module / File | Key Commits (Examples) | Git Branch | Status | Test Status | PR Link |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **1** | `iqid_alphas/utils/*_utils.py` | `feat(utils): Migrate I/O helpers from legacy` \<br\> `test(utils): Add characterization tests for I/O` | `feature/utils-migration` | ✅ Complete | ✅ Tests Written | Created io_utils.py, math_utils.py, transform_utils.py with characterization tests |
-| **2** | `iqid_alphas/core/tissue_segmentation.py`| `refactor(segmentation): Migrate process_object logic` \<br\> `feat(segmentation): Implement TissueSeparator class` | `feature/core-tissue-segmentation` | Not Started | Not Started | |
+| **2** | `iqid_alphas/core/tissue_segmentation.py`| `refactor(segmentation): Migrate process_object logic` \<br\> `feat(segmentation): Implement TissueSeparator class` | `feature/core-tissue-segmentation` | ✅ Complete | ✅ Tests Written | Migrated and tested segmentation logic with validation |
+| **2.1** | `iqid_alphas/core/mapping.py` | `feat(mapping): Implement reverse mapping framework` \<br\> `test(mapping): Add comprehensive mapping tests` | `feature/core-tissue-segmentation` | ✅ **COMPLETED** | ✅ **18/18 TESTS PASSING** | **Reverse mapping evaluation framework ready** |
 | **3** | `iqid_alphas/core/slice_alignment.py` | `refactor(alignment): Migrate single-modality align logic` \<br\> `feat(alignment): Implement EnhancedAligner class` | `feature/core-slice-alignment` | Not Started | Not Started | |
 | **4** | `iqid_alphas/core/coregistration.py` | `refactor(coreg): Migrate PyStackReg logic` \<br\> `feat(coreg): Implement MultiModalAligner` | `feature/core-coregistration` | Not Started | Not Started | |
 | **5** | `iqid_alphas/core/validation.py` | `feat(validation): Add ValidationSuite class` | `feature/core-validation` | Not Started | Not Started | |
