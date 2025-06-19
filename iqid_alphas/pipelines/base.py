@@ -183,6 +183,10 @@ class BasePipeline(ABC):
             level=self.config.log_level
         )
         
+        # Initialize reporting
+        from ..reporting import ReportGenerator
+        self.report_generator = ReportGenerator(self.output_dir / "reports")
+        
         # Initialize pipeline state
         self.start_time: Optional[float] = None
         self.end_time: Optional[float] = None
@@ -329,6 +333,7 @@ class BasePipeline(ABC):
             # Generate reports if configured
             if self.config.save_metrics:
                 self._save_pipeline_result(result)
+                self._generate_enhanced_reports(result)
             
             self.logger.info(f"Pipeline completed successfully!")
             self.logger.info(f"Processed {len(samples)} samples in {result.duration:.2f}s")
