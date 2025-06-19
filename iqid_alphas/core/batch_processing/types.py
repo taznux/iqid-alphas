@@ -131,7 +131,7 @@ class BatchResult:
     # Job tracking
     total_jobs: int
     completed_jobs: int
-    failed_jobs: int
+    failed_job_count: int
     cancelled_jobs: int
     
     # Performance metrics
@@ -172,7 +172,7 @@ class BatchResult:
         """Calculate failure rate as percentage."""
         if self.total_jobs == 0:
             return 0.0
-        return (self.failed_jobs / self.total_jobs) * 100.0
+        return (self.failed_job_count / self.total_jobs) * 100.0
 
 
 @dataclass

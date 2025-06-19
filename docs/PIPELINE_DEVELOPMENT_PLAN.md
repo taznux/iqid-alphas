@@ -631,17 +631,12 @@ pipelines/
 └── coregistration.py
 ```
 
-### 7.3 Backward Compatibility
+### 7.3 Backward Compatibility is NOT Required
 
 #### A. Legacy Support
 - Do not maintain compatibility with existing CLI interfaces
 - Do not provide migration utilities for old configurations
-
-
-#### B. Gradual Transition
-- Parallel operation during transition period
-- Validation of new vs old results
-- User training and documentation
+- Do not keep legacy code after refactoring
 
 ---
 
