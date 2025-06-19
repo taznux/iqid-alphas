@@ -38,6 +38,8 @@ except ImportError:
 # Internal imports
 from ..utils.io import natural_sort, find_files_with_pattern, ensure_directory_exists
 from ..utils.math import normalize_array, calculate_statistics
+from ..core.image_utils import load_raw_image, load_iqid_binary_data, preprocess_raw_image
+from ..core.segmentation_strategies import clustering_based_segmentation
 
 
 class TissueSeparator:
@@ -337,88 +339,24 @@ class TissueSeparator:
         
         Migrated from legacy process_object.py load methods.
         """
-        try:
-            if image_path.suffix.lower() in ['.dat', '.raw']:
-                # Handle binary iQID format (migrated from ClusterData.load_cluster_data)
-                return self._load_iqid_binary_data(image_path)
-            else:
-                # Handle standard image formats
-                from skimage import io
-                return io.imread(str(image_path))
-        except Exception as e:
-            self.logger.error(f"Failed to load image {image_path}: {e}")
-            raise
-    
+        return load_raw_image(image_path, logger=self.logger)
+
     def _load_iqid_binary_data(self, file_path: Path) -> np.ndarray:
         """
         Load binary iQID data format.
         
         Migrated from ClusterData.load_cluster_data() and init_header().
         """
-        # Read header to get dimensions
-        header = np.fromfile(str(file_path), dtype=np.int32, count=100)
-        header_size = header[0]
-        xdim = header[1]
-        ydim = header[2]
-        
-        file_size_bytes = os.path.getsize(str(file_path))
-        
-        # Determine data type and number of elements based on file structure
-        # For processed listmode data
-        num_data_elements = 14  # Default for processed_lm format
-        
-        byte_size = 8  # Using float64
-        byte_fac = 2
-        
-        num_clusters = np.floor(
-            (file_size_bytes - 4 * header_size) / (byte_size * num_data_elements))
-        
-        # Load the data
-        unshaped_data = np.fromfile(
-            str(file_path), 
-            dtype=np.float64, 
-            count=header_size // byte_fac + int(num_clusters * num_data_elements)
-        )
-        
-        data = unshaped_data[header_size // byte_fac:].reshape(
-            int(num_data_elements), int(num_clusters), order='F'
-        )
-        
-        # Extract coordinate data (migrated from init_metadata)
-        yC_global = data[4, :]  # Y coordinates
-        xC_global = data[5, :]  # X coordinates
-        cluster_area = data[3, :]  # Cluster areas
-        sum_cluster_signal = data[2, :]  # Signal intensities
-        
-        # Create 2D image from coordinate data
-        image = np.zeros((ydim, xdim), dtype=np.float64)
-        
-        # Populate image with cluster data
-        for i in range(len(xC_global)):
-            x_coord = int(np.clip(xC_global[i], 0, xdim - 1))
-            y_coord = int(np.clip(yC_global[i], 0, ydim - 1))
-            
-            # Use signal intensity if available, otherwise use area
-            intensity = sum_cluster_signal[i] if len(sum_cluster_signal) > i else cluster_area[i]
-            image[y_coord, x_coord] = intensity
-        
-        return image
-    
+        return load_iqid_binary_data(file_path)
+
     def _preprocess_raw_image(self, raw_image: np.ndarray) -> np.ndarray:
         """
         Preprocess raw image for segmentation.
         
         Applies noise reduction, normalization, and enhancement.
         """
-        # Normalize the image
-        preprocessed = normalize_array(raw_image, method='minmax')
-        
-        # Apply gentle smoothing to reduce noise while preserving edges
-        if HAS_SKIMAGE:
-            preprocessed = filters.gaussian(preprocessed, sigma=1.0, preserve_range=True)
-        
-        return preprocessed
-    
+        return preprocess_raw_image(raw_image)
+
     def _detect_tissue_regions(self, image: np.ndarray) -> List[Dict[str, Any]]:
         """
         Detect tissue regions using the specified segmentation method.
@@ -441,55 +379,15 @@ class TissueSeparator:
         """
         Perform clustering-based tissue segmentation using DBSCAN or connected components.
         """
-        # Find significant pixels (above threshold)
-        if HAS_SKIMAGE:
-            threshold = filters.threshold_otsu(image)
-        else:
-            threshold = np.mean(image) + 2 * np.std(image)
-        significant_pixels = image > threshold
-        if not np.any(significant_pixels):
-            return []
-        y_coords, x_coords = np.where(significant_pixels)
-        coords = np.column_stack([x_coords, y_coords])
-        if len(coords) == 0:
-            return []
-        regions = []
-        if HAS_SKLEARN and self.use_clustering:
-            clustering = DBSCAN(eps=10, min_samples=self.min_blob_area // 4)
-            cluster_labels = clustering.fit_predict(coords)
-            for label in np.unique(cluster_labels):
-                if label == -1:
-                    continue
-                cluster_coords = coords[cluster_labels == label]
-                cluster_mask = np.zeros_like(image, dtype=bool)
-                cluster_mask[cluster_coords[:, 1], cluster_coords[:, 0]] = True
-                if HAS_SKIMAGE:
-                    if self.preserve_blobs:
-                        cluster_mask = morphology.binary_closing(cluster_mask, disk(3))
-                    else:
-                        cluster_mask = morphology.binary_closing(cluster_mask, disk(5))
-                        cluster_mask = morphology.binary_opening(cluster_mask, disk(3))
-                region_area = np.sum(cluster_mask)
-                if self.min_blob_area <= region_area <= self.max_blob_area:
-                    regions.append({
-                        'mask': cluster_mask,
-                        'area': region_area,
-                        'centroid': np.mean(cluster_coords, axis=0),
-                        'intensity': np.mean(image[cluster_mask])
-                    })
-        else:
-            if HAS_SKIMAGE:
-                labeled_regions = measure.label(significant_pixels)
-                for region in measure.regionprops(labeled_regions):
-                    if self.min_blob_area <= region.area <= self.max_blob_area:
-                        mask = labeled_regions == region.label
-                        regions.append({
-                            'mask': mask,
-                            'area': region.area,
-                            'centroid': np.array(region.centroid),
-                            'intensity': np.mean(image[mask])
-                        })
-        return regions
+        return clustering_based_segmentation(
+            image,
+            self.min_blob_area,
+            self.max_blob_area,
+            self.preserve_blobs,
+            self.use_clustering,
+            HAS_SKLEARN,
+            logger=self.logger
+        )
 
     def _multi_threshold_segmentation(self, image: np.ndarray) -> List[Dict[str, Any]]:
         """
