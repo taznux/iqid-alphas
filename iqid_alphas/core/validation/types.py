@@ -36,7 +36,8 @@ class MetricType(Enum):
 @dataclass
 class ValidationResult:
     """Result from a validation run."""
-    mode: ValidationMode
+    sample_id: Optional[str] = None
+    mode: ValidationMode = None
     metrics: Dict[str, float] = field(default_factory=dict)
     passed_tests: int = 0
     total_tests: int = 0
@@ -44,6 +45,10 @@ class ValidationResult:
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self):
+        from dataclasses import asdict
+        return asdict(self)
     
     @property
     def success_rate(self) -> float:

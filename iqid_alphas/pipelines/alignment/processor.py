@@ -121,29 +121,10 @@ class AlignmentProcessor:
             processing_time=time.time() - start_time,
             passed_tests=1 if success else 0,
             total_tests=1,
-            metadata={'sample_id': sample_id}
+            metadata={'sample_id': sample_id, 'validation_type': 'alignment'}
         )
-        
-        # Add compatibility attributes for base pipeline
-        result.success = success
-        result.error_message = None
-        result.validation_type = "alignment"
-        result.sample_id = sample_id
-        
-        # Add to_dict method for pipeline compatibility
-        def to_dict(self):
-            return {
-                'sample_id': getattr(self, 'sample_id', sample_id),
-                'success': getattr(self, 'success', True),
-                'metrics': dict(self.metrics),
-                'processing_time': self.processing_time,
-                'error_message': getattr(self, 'error_message', None),
-                'validation_type': getattr(self, 'validation_type', 'alignment')
-            }
-        result.to_dict = to_dict.__get__(result, type(result))
-        
         return result
-    
+
     def _create_error_result(self, sample_id: str, error_message: str, 
                              start_time: float) -> ValidationResult:
         """Create an error validation result."""
@@ -154,28 +135,6 @@ class AlignmentProcessor:
             passed_tests=0,
             total_tests=1,
             errors=[error_message],
-            metadata={'sample_id': sample_id}
+            metadata={'sample_id': sample_id, 'validation_type': 'alignment'}
         )
-        
-        # Add compatibility attributes for base pipeline
-        result.success = False
-        result.error_message = error_message
-        result.validation_type = "alignment"
-        result.sample_id = sample_id
-        
-        # Add to_dict method for pipeline compatibility
-        def create_to_dict_method(error_msg, sid):
-            def to_dict(self):
-                return {
-                    'sample_id': getattr(self, 'sample_id', sid),
-                    'success': getattr(self, 'success', False),
-                    'metrics': dict(self.metrics),
-                    'processing_time': self.processing_time,
-                    'error_message': getattr(self, 'error_message', error_msg),
-                    'validation_type': getattr(self, 'validation_type', 'alignment')
-                }
-            return to_dict
-        
-        result.to_dict = create_to_dict_method(error_message, sample_id).__get__(result, type(result))
-        
         return result

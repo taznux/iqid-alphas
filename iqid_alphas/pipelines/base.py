@@ -13,7 +13,7 @@ from typing import Dict, Any, Optional, List, Union
 from dataclasses import dataclass, asdict
 
 from ..utils.io import setup_logging
-from ..core.validation import ValidationResult
+from ..core.validation import ValidationResult, ValidationMode
 
 
 @dataclass
@@ -87,9 +87,12 @@ class PipelineResult:
         """Convert result to dictionary for serialization."""
         result_dict = asdict(self)
         result_dict['output_directory'] = str(self.output_directory)
-        result_dict['validation_results'] = [
-            result.to_dict() for result in self.validation_results
-        ]
+        try:
+            result_dict['validation_results'] = [
+                result.to_dict() for result in self.validation_results
+            ]
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Failed to serialize validation results: {e}")
         return result_dict
 
 
@@ -298,11 +301,13 @@ class BasePipeline(ABC):
                     
                     # Create failure result
                     failure_result = ValidationResult(
-                        sample_id=sample.get('id', f'sample_{i+1}'),
-                        success=False,
-                        error_message=str(e),
+                        mode=ValidationMode.SEGMENTATION,
                         metrics={},
-                        processing_time=0.0
+                        errors=[str(e)],
+                        processing_time=0.0,
+                        passed_tests=0,
+                        total_tests=1,
+                        metadata={'sample_id': sample.get('id', f'sample_{i+1}')}
                     )
                     validation_results.append(failure_result)
                     
@@ -333,7 +338,6 @@ class BasePipeline(ABC):
             # Generate reports if configured
             if self.config.save_metrics:
                 self._save_pipeline_result(result)
-                self.generate_report(result)
             
             self.logger.info(f"Pipeline completed successfully!")
             self.logger.info(f"Processed {len(samples)} samples in {result.duration:.2f}s")
@@ -351,7 +355,7 @@ class BasePipeline(ABC):
             return {}
         
         # Extract metrics from successful results
-        successful_results = [r for r in results if r.success]
+        successful_results = [r for r in results if r.is_passing]
         
         if not successful_results:
             return {"note": "No successful results for metric calculation"}
@@ -425,11 +429,11 @@ class BasePipeline(ABC):
             if result.validation_results:
                 f.write("## Sample Results Summary\n\n")
                 for i, validation_result in enumerate(result.validation_results):
-                    status = "✅ SUCCESS" if validation_result.success else "❌ FAILED"
-                    f.write(f"{i+1}. **{validation_result.sample_id}**: {status}\n")
+                    status = "✅ SUCCESS" if validation_result.is_passing else "❌ FAILED"
+                    f.write(f"{i+1}. **{validation_result.metadata['sample_id']}**: {status}\n")
                     
-                    if validation_result.error_message:
-                        f.write(f"   - Error: {validation_result.error_message}\n")
+                    if validation_result.errors:
+                        f.write(f"   - Error: {validation_result.errors}\n")
                     
                     if validation_result.metrics:
                         f.write("   - Metrics:\n")

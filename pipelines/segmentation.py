@@ -112,9 +112,10 @@ Examples:
         print(f"⏱️  Duration: {result['duration']:.2f}s")
         print(f"📁 Results: {result['output_dir']}")
         
-        if result['metrics']:
+        metrics = result.get('metrics')
+        if metrics:
             print("\n📊 Quality Metrics:")
-            for metric, value in result['metrics'].items():
+            for metric, value in metrics.items():
                 if isinstance(value, float):
                     print(f"   {metric}: {value:.4f}")
                 else:
