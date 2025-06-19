@@ -1,6 +1,6 @@
 # IQID-Alphas Pipeline Development Plan
 
-**Date**: June 19, 2025  
+**Date**: June 10, 2025  
 **Objective**: Create three complete, production-ready pipelines for IQID data processing evaluation  
 **Status**: Planning Phase
 
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This document outlines the comprehensive plan to transform the current evaluation test scripts into three robust, production-ready pipelines. Each pipeline will have a thin interface in the `evaluation/` directory that delegates core implementation to the `iqid_alphas` package, ensuring clean architecture and maintainability.
+This document outlines the comprehensive plan to transform the current evaluation test scripts into three robust, production-ready pipelines. Each pipeline will have a thin interface in the top-level `pipelines/` directory that delegates core implementation to the `iqid_alphas` package, ensuring clean architecture and maintainability.
 
 ### Target Pipelines
 1. **ReUpload Raw → Segmented Pipeline**: Tissue separation from multi-tissue raw images
@@ -40,7 +40,7 @@ class TissueSeparator:
 ```
 
 #### B. `slice_alignment.py`
-**Purpose**: Enhanced slice alignment implementing Steps 9-13 bidirectional methods  
+**Purpose**: Enhanced slice alignment implementing bidirectional methods  
 **Key Components**:
 - `EnhancedAligner` class
 - Reference slice detection (largest slice strategy)
@@ -166,7 +166,7 @@ class CoregistrationPipeline:
 - Integration for downstream analysis
 
 ### 2.2 Migration from Current Evaluation Scripts
-
+`
 #### A. `evaluation/utils/` → `iqid_alphas/core/`
 - `adaptive_segmentation.py` → `tissue_segmentation.py`
 - `enhanced_sample_discovery.py` → `batch_processor.py`
@@ -194,7 +194,7 @@ class LegacyProcessObjectAdapter:
 
 ### 3.1 Pipeline 1: Raw → Segmented
 
-**Interface**: `evaluation/pipelines/raw_to_segmented.py`
+**Interface**: `pipelines/segmentation.py`
 
 ```python
 #!/usr/bin/env python3
@@ -259,14 +259,14 @@ if __name__ == "__main__":
 
 ### 3.2 Pipeline 2: Segmented → Aligned
 
-**Interface**: `evaluation/pipelines/segmented_to_aligned.py`
+**Interface**: `pipelines/alignment.py`
 
 ```python
 #!/usr/bin/env python3
 """
 ReUpload Segmented → Aligned Pipeline
 
-Validates automated slice alignment with advanced bidirectional methods (Steps 9-13).
+Validates automated slice alignment with advanced bidirectional methods.
 Processes segmented tissue slices and aligns them into coherent 3D stacks.
 """
 
@@ -326,7 +326,7 @@ if __name__ == "__main__":
 **Core Implementation**: `iqid_alphas/pipelines/alignment.py`
 
 **Key Features**:
-- Implements Steps 9-13 bidirectional alignment methods
+- Implement bidirectional alignment methods
 - Reference slice auto-detection (largest slice strategy)
 - Bidirectional propagation (largest→up, largest→down)
 - Noise-robust alignment (mask-based, template-based, adaptive)
@@ -335,7 +335,7 @@ if __name__ == "__main__":
 
 ### 3.3 Pipeline 3: iQID+H&E Co-registration
 
-**Interface**: `evaluation/pipelines/iqid_he_coregistration.py`
+**Interface**: `pipelines/coregistration.py`
 
 ```python
 #!/usr/bin/env python3
@@ -416,7 +416,7 @@ if __name__ == "__main__":
 ### 4.1 Overall Architecture
 
 ```
-evaluation/pipelines/          # Thin interface scripts
+pipelines/          # Thin interface scripts
 ├── segmentation.py
 ├── alignment.py
 └── coregistration.py
@@ -684,9 +684,9 @@ pipelines/
 - [ ] `iqid_alphas/pipelines/coregistration.py`
 
 #### C. Interface Scripts (3 files)
-- [ ] `evaluation/pipelines/segmentation.py`
-- [ ] `evaluation/pipelines/alignment.py`
-- [ ] `evaluation/pipelines/coregistration.py`
+- [ ] `pipelines/segmentation.py`
+- [ ] `pipelines/alignment.py`
+- [ ] `pipelines/coregistration.py`
 
 #### D. Configuration Files (4 files)
 - [ ] `iqid_alphas/configs/segmentation_config.json`
@@ -787,7 +787,7 @@ pipelines/
 
 This comprehensive plan provides a roadmap for transforming the current evaluation test scripts into three robust, production-ready pipelines. The approach emphasizes:
 
-1. **Clean Architecture**: Core logic in `iqid_alphas`, thin interfaces in `evaluation`
+1. **Clean Architecture**: Core logic in `iqid_alphas`, thin interfaces in `pipelines/`
 2. **Legacy Integration**: Proper utilization of proven `old/iqid-alphas` methods
 3. **Comprehensive Validation**: Rigorous testing against ground truth data
 4. **Production Readiness**: Robust error handling, logging, and documentation
