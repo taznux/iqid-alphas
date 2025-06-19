@@ -33,6 +33,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.visualizer import IQIDVisualizer
 from utils.adaptive_segmentation import AdaptiveIQIDSegmenter, EnhancedRawImageSplitter
 
+# Import Steps 9-13 bidirectional alignment capabilities
+from bidirectional_alignment_evaluation import BidirectionalAlignmentEvaluator, AlignmentStrategy, ReferenceSliceInfo
+
 
 @dataclass
 class EvaluationResult:
@@ -47,6 +50,10 @@ class EvaluationResult:
     file_count_reference: int = 0
     detailed_metrics: Optional[Dict] = None
     visualization_paths: Optional[Dict] = None  # Added for visualization file paths
+    # Enhanced for Steps 9-13 evaluation
+    alignment_strategy: Optional[str] = None
+    reference_slice_info: Optional[Dict] = None
+    bidirectional_quality: Optional[Dict] = None
 
 
 class ReUploadPipelineEvaluator:
@@ -67,7 +74,14 @@ class ReUploadPipelineEvaluator:
         self.enhanced_splitter = EnhancedRawImageSplitter(preserve_blobs=True)
         self.aligner = ImageAligner()
         
+        # Initialize bidirectional alignment evaluator for Steps 9-13
+        self.bidirectional_evaluator = BidirectionalAlignmentEvaluator(
+            str(self.reupload_path), 
+            str(self.output_dir / "bidirectional_alignment")
+        )
+        
         self.logger.info("Using improved clustering-based segmentation for distributed dots")
+        self.logger.info("Integrated Steps 9-13 bidirectional alignment evaluation")
         
         # Initialize visualizer
         viz_output_dir = self.output_dir / "visualizations"
