@@ -333,7 +333,7 @@ class BasePipeline(ABC):
             # Generate reports if configured
             if self.config.save_metrics:
                 self._save_pipeline_result(result)
-                self._generate_enhanced_reports(result)
+                self.generate_report(result)
             
             self.logger.info(f"Pipeline completed successfully!")
             self.logger.info(f"Processed {len(samples)} samples in {result.duration:.2f}s")

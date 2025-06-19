@@ -51,14 +51,13 @@ class SegmentationPipelineConfig(PipelineConfig):
         processing_config = config_dict.get("processing", {})
         
         return cls(
-            data_path="",  # Will be set during initialization
-            output_dir="",  # Will be set during initialization
-            max_samples=processing_config.get("batch_size"),
-            parallel_workers=pipeline_config.get("max_workers", 4),
+            # Base pipeline config
+            max_workers=pipeline_config.get("max_workers", 4),
             memory_limit_gb=pipeline_config.get("memory_limit_gb"),
-            validation_enabled=config_dict.get("validation", {}).get("generate_visualizations", True),
-            generate_visualizations=config_dict.get("validation", {}).get("generate_visualizations", True),
             log_level=pipeline_config.get("log_level", "INFO"),
+            generate_visualizations=config_dict.get("validation", {}).get("generate_visualizations", True),
+            save_metrics=config_dict.get("validation", {}).get("save_metrics", True),
+            # Segmentation-specific config
             segmentation_method=seg_config.get("method", "adaptive_clustering"),
             min_blob_area=seg_config.get("min_blob_area", 50),
             max_blob_area=seg_config.get("max_blob_area", 50000),
