@@ -17,6 +17,7 @@ Deploy the advanced pipeline system to production environments with enterprise-g
 - **Multi-Tenancy**: Support multiple research groups and organizations
 - **Integration-Ready**: APIs and connectors for existing enterprise systems
 - **Compliance-Focused**: Meet regulatory and institutional requirements
+- **Modular Architecture**: Maintain <500 lines per module; decompose into specialized packages
 - **Zero-Downtime Operations**: Blue-green deployments and rolling updates
 
 ---

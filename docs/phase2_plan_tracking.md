@@ -17,6 +17,7 @@ Build production-ready pipelines that leverage the modular core components devel
 - **Thin Interface Pattern**: Lightweight CLI scripts in `pipelines/` that delegate to `iqid_alphas/pipelines/`
 - **Configuration-Driven**: JSON-based configuration system for flexible parameter management
 - **Unified CLI**: Single entry point with subcommands for different pipelines
+- **Modular Architecture**: No single module exceeds 500 lines; complex functionality split into focused packages
 
 ---
 

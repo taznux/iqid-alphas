@@ -17,6 +17,7 @@ Ensure scientific rigor and accuracy of the pipeline system while integrating wi
 - **Validation Framework**: Comprehensive validation against established methods
 - **Research Integration**: Native integration with scientific computing ecosystems
 - **Publication-Ready**: Generate publication-quality results and figures
+- **Modular Architecture**: Keep modules <500 lines; organize complex logic into focused packages
 - **Open Science**: Support open science practices and data sharing
 
 ---

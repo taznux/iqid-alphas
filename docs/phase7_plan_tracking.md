@@ -17,6 +17,7 @@ Expand globally and establish the platform as the international standard for mul
 - **Standards-Driven**: Lead industry standardization efforts
 - **Regulatory Compliance**: Meet international medical device and software regulations
 - **Cultural Adaptation**: Localized content and culturally appropriate implementations
+- **Modular Architecture**: Strict <500 lines per module; package complex systems appropriately
 - **Interoperability Focus**: Seamless integration with global healthcare systems
 
 ---

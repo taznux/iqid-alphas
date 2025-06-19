@@ -17,6 +17,7 @@ Establish a vibrant community around the platform, create a sustainable ecosyste
 - **Plugin Architecture**: Extensible system for community-developed modules
 - **Education-Focused**: Comprehensive educational resources and training programs
 - **Industry Partnerships**: Strategic partnerships with academic and commercial organizations
+- **Modular Design**: Enforce <500 lines per module; decompose into maintainable packages
 - **Sustainable Growth**: Long-term sustainability through diverse funding and support models
 
 ---

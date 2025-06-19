@@ -20,6 +20,7 @@ This document outlines the implementation plan for Phase 2: Pipeline Integration
 - **Configuration-Driven**: JSON-based parameter management
 - **Unified CLI**: Single entry point with subcommands
 - **Modular Integration**: Leverages completed Phase 1 components
+- **Size-Constrained Modules**: No module exceeds 500 lines; split complex functionality into focused packages
 
 ---
 
