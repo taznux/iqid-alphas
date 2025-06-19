@@ -1,53 +1,64 @@
 #!/usr/bin/env python3
-"""
-Alignment Pipeline Interface
-
-Thin interface for ReUpload Segmented → Aligned validation pipeline.
-Delegates core implementation to iqid_alphas.pipelines.AlignmentPipeline.
-
-Usage:
-    python alignment.py --data /path/to/ReUpload --output results/alignment
-"""
+"""Alignment Pipeline CLI Wrapper"""
 
 import sys
 import argparse
 from pathlib import Path
 
-# Add iqid_alphas to path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# TODO: Import core pipeline when implemented
-try:
-    from iqid_alphas.pipelines.alignment import AlignmentPipeline
-except ImportError as e:
-    print(f"⚠️  TODO: Core pipeline not yet implemented: {e}")
-    print("     This interface will delegate to iqid_alphas.pipelines.AlignmentPipeline")
-    AlignmentPipeline = None
+from iqid_alphas.pipelines.alignment import run_alignment_pipeline
 
 
-def print_alignment_summary(results: dict):
-    """Print alignment pipeline execution summary"""
-    print("\n" + "="*60)
-    print("SEGMENTED → ALIGNED PIPELINE RESULTS")
-    print("="*60)
+def main():
+    """Main CLI entry point for alignment pipeline."""
+    parser = argparse.ArgumentParser(
+        description="IQID-Alphas Alignment Pipeline - Segmented → Aligned Validation"
+    )
     
-    if 'error' in results:
-        print(f"❌ Pipeline failed: {results['error']}")
-        return
+    parser.add_argument("--data", required=True, help="Path to ReUpload dataset")
+    parser.add_argument("--output", required=True, help="Output directory")
+    parser.add_argument("--config", help="Configuration file path")
+    parser.add_argument("--max-samples", type=int, help="Maximum samples to process")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
     
-    print(f"📊 Total samples processed: {results.get('total_samples', 0)}")
-    print(f"✅ Successful alignments: {results.get('successful_alignments', 0)}")
-    print(f"❌ Failed alignments: {results.get('failed_alignments', 0)}")
+    args = parser.parse_args()
     
-    success_rate = results.get('success_rate', 0.0)
-    print(f"📈 Success rate: {success_rate:.1%}")
+    data_path = Path(args.data)
+    if not data_path.exists():
+        print(f"❌ Error: Data path does not exist: {data_path}")
+        return 1
     
-    if 'avg_ssim' in results:
-        print(f"📈 Average SSIM score: {results['avg_ssim']:.3f}")
-    if 'avg_mi' in results:
-        print(f"📈 Average mutual information: {results['avg_mi']:.3f}")
-    if 'avg_propagation_quality' in results:
-        print(f"🎯 Average propagation quality: {results['avg_propagation_quality']:.3f}")
+    try:
+        print("� IQID-Alphas Alignment Pipeline")
+        print("="*50)
+        print(f"📁 Data path: {data_path}")
+        print(f"📁 Output path: {args.output}")
+        
+        results = run_alignment_pipeline(
+            data_path=str(data_path),
+            output_dir=args.output,
+            max_samples=args.max_samples,
+            config_path=args.config
+        )
+        
+        print(f"\n✅ Pipeline completed successfully!")
+        print(f"📊 Processed {results['total_samples']} samples")
+        print(f"📈 Success rate: {results['success_rate']:.1%}")
+        print(f"⏱️ Duration: {results['duration']:.2f}s")
+        
+        return 0
+        
+    except Exception as e:
+        print(f"❌ Pipeline execution failed: {str(e)}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
     
     total_time = results.get('total_time', 0.0)
     print(f"⏱️  Total processing time: {total_time:.2f}s")

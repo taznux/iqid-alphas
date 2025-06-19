@@ -292,11 +292,11 @@ User Input → CLI Parser → Configuration → Pipeline → Core Modules → Ou
 
 | Task ID | Module / Component | Key Deliverables | Status | Test Status | Estimated Effort |
 |---------|-------------------|------------------|---------|-------------|------------------|
-| **2.1** | Pipeline Infrastructure | Base classes, config system, progress tracking | 🔄 **Not Started** | Not Started | 4-6 days |
-| **2.2** | Segmentation Pipeline | Core pipeline + CLI + tests | 🔄 **Not Started** | Not Started | 5-7 days |
-| **2.3** | Alignment Pipeline | Core pipeline + CLI + advanced methods | 🔄 **Not Started** | Not Started | 6-8 days |
-| **2.4** | Coregistration Pipeline | Core pipeline + CLI + quality assessment | 🔄 **Not Started** | Not Started | 6-7 days |
-| **2.5** | Unified CLI System | Main CLI + help + config validation | 🔄 **Not Started** | Not Started | 4-6 days |
+| **2.1** | Pipeline Infrastructure | Base classes, config system, progress tracking | ✅ **COMPLETED** | Tests Needed | 4-6 days |
+| **2.2** | Segmentation Pipeline | Core pipeline + CLI + tests | ✅ **COMPLETED** | Tests Needed | 5-7 days |
+| **2.3** | Alignment Pipeline | Core pipeline + CLI + advanced methods | � **IN PROGRESS** | Tests Needed | 6-8 days |
+| **2.4** | Coregistration Pipeline | Core pipeline + CLI + quality assessment | � **IN PROGRESS** | Tests Needed | 6-7 days |
+| **2.5** | Unified CLI System | Main CLI + help + config validation | � **IN PROGRESS** | Tests Needed | 4-6 days |
 | **2.6** | Performance Optimization | Parallel processing + memory + logging | 🔄 **Not Started** | Not Started | 5-7 days |
 | **2.7** | Integration Testing | End-to-end tests + real data validation | 🔄 **Not Started** | Not Started | 5-8 days |
 
