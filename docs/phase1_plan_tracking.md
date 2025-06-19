@@ -15,7 +15,7 @@ The previous ADR for the Adapter Pattern is now deprecated.
 * **Positive**:
     * Creates a single, clean, and self-contained `iqid_alphas` package with no external legacy dependencies.
     * Improves long-term maintainability and understandability.
-    * [cite_start]Enforces a consistent coding standard and architecture across the entire package[cite: 4].
+    * Enforces a consistent coding standard and architecture across the entire package[cite: 4].
     * Eliminates an entire directory (`old/`) from the final project structure.
 * **Negative**:
     * Higher upfront effort required for refactoring and integration compared to simply wrapping the code.

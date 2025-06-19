@@ -1,196 +1,248 @@
 # IQID-Alphas Pipeline Development Plan
 
-**Date**: June 10, 2025  
-**Objective**: Create three complete, production-ready pipelines for IQID data processing evaluation  
-**Status**: Planning Phase
+**Date**: June 19, 2025 (Revised)  
+**Objective**: Phase 2 Implementation - Build production-ready pipelines using completed Phase 1 modules  
+**Status**: ✅ Phase 1 Complete → 🚀 Phase 2 Implementation
 
 ---
 
 ## Executive Summary
 
-This document outlines the comprehensive plan to transform the current evaluation test scripts into three robust, production-ready pipelines. Each pipeline will have a thin interface in the top-level `pipelines/` directory that delegates core implementation to the `iqid_alphas` package, ensuring clean architecture and maintainability.
+This document outlines the implementation plan for Phase 2: Pipeline Integration & CLI Development. With Phase 1's modular core system completed, we now focus on building three production-ready pipelines that leverage these components through unified CLI interfaces.
 
 ### Target Pipelines
-1. **ReUpload Raw → Segmented Pipeline**: Tissue separation from multi-tissue raw images
-2. **ReUpload Segmented → Aligned Pipeline**: Slice alignment with bidirectional methods
-3. **DataPush1 iQID+H&E Co-registration Pipeline**: Multi-modal image registration
+1. **Segmentation Pipeline**: Raw → Segmented validation using `TissueSeparator`
+2. **Alignment Pipeline**: Segmented → Aligned validation using modular alignment package
+3. **Coregistration Pipeline**: iQID+H&E multi-modal registration using `MultiModalAligner`
+
+### Architecture Pattern
+- **Thin Interface Design**: CLI scripts in `pipelines/` delegate to `iqid_alphas/pipelines/`
+- **Configuration-Driven**: JSON-based parameter management
+- **Unified CLI**: Single entry point with subcommands
+- **Modular Integration**: Leverages completed Phase 1 components
 
 ---
 
-## Phase 1: Core Infrastructure Enhancement
+## ✅ Phase 1 Completed Infrastructure
 
-### 1.1 New Core Modules Development
+### Available Modular Components
 
-**Location**: `iqid_alphas/core/`
+**Location**: `iqid_alphas/core/` ✅ **COMPLETED**
 
-#### A. `tissue_segmentation.py`
-**Purpose**: Automated separation of tissue types from raw multi-tissue iQID images  
-**Key Components**:
-- `TissueSeparator` class
-- Adaptive clustering methods from `evaluation/utils/adaptive_segmentation.py`
-- Integration with `old/iqid-alphas/iqid/process_object.py` methods
-- Ground truth validation utilities
+#### A. **Tissue Segmentation** (`tissue_segmentation.py`)
+- `TissueSeparator` class with adaptive clustering methods
+- Integration with legacy process_object.py functionality
+- Ground truth validation capabilities
 
 ```python
 class TissueSeparator:
     def __init__(self, method='adaptive_clustering')
     def separate_tissues(self, raw_image_path: str) -> Dict[str, List[Path]]
     def validate_against_ground_truth(self, automated_results: Dict, ground_truth_dirs: Dict) -> Dict
-    def calculate_segmentation_metrics(self, predicted_mask: np.ndarray, ground_truth_mask: np.ndarray) -> Dict
 ```
 
-#### B. `slice_alignment.py`
-**Purpose**: Enhanced slice alignment implementing bidirectional methods  
-**Key Components**:
-- `EnhancedAligner` class
-- Reference slice detection (largest slice strategy)
-- Bidirectional propagation (up/down from reference)
-- Noise-robust alignment methods (mask-based, template-based)
-- Integration with `old/iqid-alphas/iqid/align.py`
+#### B. **Alignment Package** (`alignment/`) ✅ **MODULAR PACKAGE**
+- `SimpleAligner`, `EnhancedAligner`, `StackAligner`, `UnifiedAligner` classes
+- Bidirectional alignment methods with reference slice detection
+- Noise-robust alignment (mask-based, template-based)
 
 ```python
-class EnhancedAligner:
-    def __init__(self, method='bidirectional')
-    def align_slice_stack(self, slice_paths: List[Path]) -> Tuple[List[np.ndarray], Dict]
-    def find_reference_slice(self, images: List[np.ndarray], method: str = "largest") -> int
-    def bidirectional_alignment(self, images: List[np.ndarray], reference_idx: int) -> Tuple[List[np.ndarray], Dict]
-    def validate_against_ground_truth(self, aligned_images: List[np.ndarray], ground_truth_dir: Path) -> Dict
+from iqid_alphas.core.alignment import UnifiedAligner
+aligner = UnifiedAligner(method='bidirectional')
+results = aligner.align_slice_stack(slice_paths)
 ```
 
-#### C. `coregistration.py`
-**Purpose**: Multi-modal iQID and H&E image co-registration  
-**Key Components**:
-- `MultiModalAligner` class
-- Feature-based registration methods
-- Mutual information optimization
-- Integration with `old/iqid-alphas/iqid/align.py` PyStackReg methods
+#### C. **Coregistration Package** (`coregistration/`) ✅ **MODULAR PACKAGE**
+- `MultiModalAligner` class for iQID+H&E registration
+- Mutual information and correlation-based methods
+- Quality assessment without ground truth
 
 ```python
-class MultiModalAligner:
-    def __init__(self, registration_method='mutual_information')
-    def register_iqid_he_pair(self, iqid_stack_dir: Path, he_stack_dir: Path) -> Dict
-    def assess_registration_quality(self, registered_result: Dict) -> Dict
-    def find_corresponding_slices(self, iqid_stack: List[np.ndarray], he_stack: List[np.ndarray]) -> List[Tuple[int, int]]
+from iqid_alphas.core.coregistration import MultiModalAligner
+aligner = MultiModalAligner(method='mutual_information')
+results = aligner.register_iqid_he_pair(iqid_dir, he_dir)
 ```
 
-#### D. `validation.py`
-**Purpose**: Comprehensive validation and quality assessment utilities  
-**Key Components**:
-- Ground truth comparison methods
-- Quality metric calculations (SSIM, IoU, Dice, MI)
-- Statistical analysis utilities
-- Report generation
+#### D. **Validation Package** (`validation/`) ✅ **MODULAR PACKAGE**
+- `ValidationSuite` orchestrator with specialized validators
+- Comprehensive metrics (SSIM, IoU, Dice, MI)
+- Statistical analysis and reporting
 
 ```python
-class ValidationSuite:
-    def __init__(self)
-    def compare_segmentation_results(self, automated: Dict, ground_truth: Dict) -> Dict
-    def compare_alignment_results(self, automated: List[np.ndarray], ground_truth: List[np.ndarray]) -> Dict
-    def assess_coregistration_quality(self, iqid_aligned: np.ndarray, he_aligned: np.ndarray) -> Dict
-    def generate_quality_report(self, results: Dict) -> Dict
+from iqid_alphas.core.validation import ValidationSuite
+validator = ValidationSuite()
+report = validator.validate_pipeline_results(results)
 ```
 
-#### E. `batch_processor.py`
-**Purpose**: Efficient batch processing and sample discovery  
-**Key Components**:
-- Enhanced sample discovery from `evaluation/utils/enhanced_sample_discovery.py`
-- Batch processing orchestration
-- Memory-efficient processing
-- Progress tracking and logging
+#### E. **Batch Processing Package** (`batch_processing/`) ✅ **MODULAR PACKAGE**
+- `BatchProcessor` with parallel processing capabilities
+- SQLite-based results storage
+- Job scheduling and resource management
 
 ```python
-class BatchProcessor:
-    def __init__(self, data_path: str, output_dir: str)
-    def discover_samples(self) -> Dict[str, List[Dict]]
-    def process_batch(self, samples: List[Dict], pipeline_func: callable, max_samples: int = None) -> List[Dict]
-    def group_samples_by_raw_image(self, samples: List[Dict]) -> Dict[str, List[Dict]]
+from iqid_alphas.core.batch_processing import BatchProcessor
+processor = BatchProcessor(data_path, output_dir)
+results = processor.run_batch_job(samples, pipeline_func)
 ```
 
-### 1.2 Enhanced Pipeline Framework
+#### F. **Reverse Mapping Framework** (`mapping.py`) ✅ **COMPLETED**
+- Ground truth evaluation for segmentation and alignment
+- Template matching and feature-based registration
+- 100% accuracy validation on test data
 
-**Location**: `iqid_alphas/pipelines/`
-
-#### A. `segmentation.py`
 ```python
-class SegmentationPipeline:
-    def __init__(self, data_path: str, output_dir: str)
-    def run_validation(self, max_samples: int = None) -> Dict
-    def process_sample_group(self, raw_image_path: Path, ground_truth_group: Dict) -> Dict
-    def generate_report(self, results: Dict) -> None
+from iqid_alphas.core.mapping import ReverseMapper
+mapper = ReverseMapper()
+crop_result = mapper.find_crop_location(raw_image, segmented_slice)
+transform_result = mapper.calculate_alignment_transform(original, aligned)
 ```
 
-#### B. `alignment.py`
-```python
-class AlignmentPipeline:
-    def __init__(self, data_path: str, output_dir: str)
-    def run_validation(self, max_samples: int = None) -> Dict
-    def process_sample(self, segmented_dir: Path, ground_truth_dir: Path) -> Dict
-    def generate_report(self, results: Dict) -> None
-```
-
-#### C. `coregistration.py`
-```python
-class CoregistrationPipeline:
-    def __init__(self, data_path: str, output_dir: str)
-    def run_evaluation(self, max_samples: int = None) -> Dict
-    def process_paired_sample(self, iqid_dir: Path, he_dir: Path) -> Dict
-    def generate_report(self, results: Dict) -> None
-```
+### Utility Modules ✅ **COMPLETED**
+- `iqid_alphas/utils/io_utils.py`: File I/O and image loading
+- `iqid_alphas/utils/math_utils.py`: Mathematical operations and transforms
 
 ---
 
-## Phase 2: Legacy Code Integration Strategy
+## Phase 2: Pipeline Integration & CLI Development ✅ **CURRENT PHASE**
 
-### 2.1 Migration from `old/iqid-alphas/iqid/`
+**Status**: 🚀 **IN PROGRESS** (Following phase2_plan_tracking.md)  
+**Objective**: Build production-ready pipelines that leverage the modular core components developed in Phase 1
 
-**Source Files to Integrate**:
+### **Task 2.1: Pipeline Infrastructure Development** 
 
-#### A. `align.py` → Multiple Destinations
-- Registration algorithms → `iqid_alphas/core/slice_alignment.py`
-- PyStackReg integration → `iqid_alphas/core/coregistration.py`
-- Transform utilities → `iqid_alphas/utils/transform_utils.py`
+**Objective**: Create the foundational pipeline framework that orchestrates core modules.
 
-#### B. `process_object.py` → `tissue_segmentation.py`
-- Listmode data processing methods
-- Raw image preprocessing utilities
-- Quality control functions
+#### **Sub-Task 2.1.1: Create Pipeline Base Classes**
+- **Action**: Implement `iqid_alphas/pipelines/base.py` with abstract pipeline interface
+- **Deliverable**: `BasePipeline` class with common functionality (logging, config, progress tracking)
+- **Dependencies**: Phase 1 core modules
+- **Status**: ⏳ **PENDING**
 
-#### C. `helper.py` → `iqid_alphas/utils/`
-- Image I/O utilities
-- Mathematical operations
-- Visualization helpers
+#### **Sub-Task 2.1.2: Implement Configuration System**
+- **Action**: Create `iqid_alphas/configs/` directory with JSON configuration templates
+- **Deliverable**: Configuration loader and validator classes
+- **Files**: 
+  - `iqid_alphas/configs/base_config.json`
+  - `iqid_alphas/configs/coregistration_config.json`
+- **Status**: ⏳ **PENDING**
 
-#### D. `dpk.py` → `iqid_alphas/core/dosimetry.py`
-- Dose kernel calculations
-- Scientific validation methods
-- Integration for downstream analysis
+#### **Sub-Task 2.1.3: Create Progress Tracking System**
+- **Action**: Implement progress reporting with logging integration
+- **Deliverable**: `ProgressTracker` class with console and file output
+- **Features**: Real-time progress bars, ETA calculation, performance metrics
+- **Status**: ⏳ **PENDING**
 
-### 2.2 Migration from Current Evaluation Scripts
-`
-#### A. `evaluation/utils/` → `iqid_alphas/core/`
-- `adaptive_segmentation.py` → `tissue_segmentation.py`
-- `enhanced_sample_discovery.py` → `batch_processor.py`
-- `visualizer.py` → `iqid_alphas/visualization/enhanced_plotter.py`
+### **Task 2.2: Segmentation Pipeline Implementation**
 
-#### B. `evaluation/scripts/` → Extract Core Logic
-- `bidirectional_alignment_evaluation.py` → `slice_alignment.py`
-- `centroid_alignment.py` → `slice_alignment.py`
-- `comprehensive_ucsf_*.py` → Pipeline framework patterns
+**Objective**: Create the Raw → Segmented validation pipeline using Phase 1 tissue segmentation components.
 
-### 2.3 Legacy Adapter Pattern
+#### **Sub-Task 2.2.1: Core Pipeline Implementation**
+- **Action**: Create `iqid_alphas/pipelines/segmentation.py`
+- **Deliverable**: `SegmentationPipeline` class
+- **Key Features**:
+  - Integration with `TissueSeparator` from Phase 1
+  - Quality metric calculation (IoU, Dice, precision, recall)
+- **Dependencies**: Phase 1 tissue segmentation, validation, batch processing modules
+- **Status**: ⏳ **PENDING**
 
-**File**: `iqid_alphas/utils/legacy_adapters.py`
-```python
-class LegacyAlignmentAdapter:
-    """Adapter to integrate old/iqid-alphas/iqid/align.py methods"""
-    
-class LegacyProcessObjectAdapter:
-    """Adapter to integrate old/iqid-alphas/iqid/process_object.py methods"""
-```
+#### **Sub-Task 2.2.2: CLI Interface Creation**
+- **Action**: Create `pipelines/segmentation.py` thin interface script
+- **Deliverable**: Command-line tool with proper argument parsing
+- **Features**: Input/output directory specification, progress reporting
+- **Status**: ⏳ **PENDING**
+
+### **Task 2.3: Alignment Pipeline Implementation**
+
+**Objective**: Create the Segmented → Aligned validation pipeline using Phase 1 alignment components.
+
+#### **Sub-Task 2.3.1: Core Pipeline Implementation**
+- **Action**: Create `iqid_alphas/pipelines/alignment.py`
+- **Deliverable**: `AlignmentPipeline` class
+- **Key Features**:
+  - Integration with modular alignment package from Phase 1
+  - Advanced quality metrics (SSIM, mutual information)
+- **Dependencies**: Phase 1 alignment package, validation system
+- **Status**: ⏳ **PENDING**
+
+#### **Sub-Task 2.3.2: CLI Interface Creation**  
+- **Action**: Create `pipelines/alignment.py` thin interface script
+- **Deliverable**: Command-line tool for alignment validation
+- **Features**: Similar CLI structure to segmentation with alignment-specific options
+- **Status**: ⏳ **PENDING**
+
+### **Task 2.4: Coregistration Pipeline Implementation**
+
+**Objective**: Create the iQID+H&E co-registration pipeline using Phase 1 coregistration components.
+
+#### **Sub-Task 2.4.1: Core Pipeline Implementation**
+- **Action**: Create `iqid_alphas/pipelines/coregistration.py`
+- **Deliverable**: `CoregistrationPipeline` class  
+- **Key Features**:
+  - Integration with `MultiModalAligner` from Phase 1
+  - Proxy quality assessment (no ground truth available)
+- **Dependencies**: Phase 1 coregistration package, batch processing
+- **Status**: ⏳ **PENDING**
+
+#### **Sub-Task 2.4.2: CLI Interface Creation**
+- **Action**: Create `pipelines/coregistration.py` thin interface script  
+- **Deliverable**: Command-line tool for coregistration
+- **Features**: Multi-modal specific CLI options and validation
+- **Status**: ⏳ **PENDING**
+
+### **Task 2.5: Unified CLI System**
+
+**Objective**: Create a single entry point CLI that orchestrates all pipelines.
+
+#### **Sub-Task 2.5.1: Main CLI Implementation**
+- **Action**: Create `iqid_alphas/cli.py` and update `iqid_alphas/__main__.py`
+- **Deliverable**: Unified CLI with subcommands
+- **Features**:
+  - `python -m iqid_alphas segmentation <args>`
+  - Common options: --config, --verbose, --output-dir
+- **Status**: ⏳ **PENDING**
+
+#### **Sub-Task 2.5.2: Help System and Documentation**
+- **Action**: Implement comprehensive help system
+- **Deliverable**: Rich help text, examples, and error messages
+- **Features**: Context-sensitive help, example commands, troubleshooting guides
+- **Status**: ⏳ **PENDING**
+
+### **Task 2.6: Performance & Production Optimization**
+
+**Objective**: Optimize pipelines for production use with large datasets.
+
+#### **Sub-Task 2.6.1: Parallel Processing Implementation**
+- **Action**: Add parallel processing capabilities to all pipelines
+- **Deliverable**: Multi-threaded/multi-process execution
+- **Features**: Configurable worker count, memory management, progress aggregation
+- **Dependencies**: Phase 1 batch processing framework
+- **Status**: ⏳ **PENDING**
+
+#### **Sub-Task 2.6.2: Memory Optimization**
+- **Action**: Implement memory-efficient processing for large datasets
+- **Deliverable**: Streaming data processing, garbage collection optimization
+- **Features**: Lazy loading, memory monitoring, automatic cleanup
+- **Status**: ⏳ **PENDING**
+
+### **Task 2.7: Integration Testing & Validation**
+
+**Objective**: Ensure all components work together correctly with real data.
+
+#### **Sub-Task 2.7.1: End-to-End Integration Tests**
+- **Action**: Create comprehensive integration test suite
+- **Deliverable**: `iqid_alphas/tests/integration/` test modules
+- **Coverage**: Full pipeline execution, CLI testing, configuration validation
+- **Status**: ⏳ **PENDING**
+
+#### **Sub-Task 2.7.2: Real Data Validation**
+- **Action**: Validate pipelines against known datasets
+- **Deliverable**: Validation reports and benchmark results
+- **Features**: Performance benchmarks, accuracy validation, regression testing
+- **Status**: ⏳ **PENDING**
 
 ---
 
-## Phase 3: Pipeline Implementation Details
+## Phase 3: Pipeline Interface & CLI Examples
 
 ### 3.1 Pipeline 1: Raw → Segmented
 
