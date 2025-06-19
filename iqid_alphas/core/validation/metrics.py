@@ -13,7 +13,7 @@ from sklearn.metrics import mean_squared_error
 from skimage.metrics import structural_similarity
 
 from ..mapping import CropLocation, AlignmentTransform
-from ...utils.math_utils import calculate_statistics
+from ...utils.math import calculate_statistics
 
 logger = logging.getLogger(__name__)
 

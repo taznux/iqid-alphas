@@ -37,7 +37,7 @@ The core of Phase 1 now shifts from creating adapters to performing targeted mig
   * **Objective**: Move general-purpose utility functions to a shared, accessible location.
   * **Implementation**:
     1.  Identify essential functions in `old/iqid-alphas/iqid/helper.py` (e.g., Image I/O, math operations).
-    2.  Create corresponding new modules like `iqid_alphas/utils/io_utils.py` and `iqid_alphas/utils/transform_utils.py`.
+    2.  Create corresponding new modules like `iqid_alphas/utils/io_utils.py` and `iqid_alphas/utils/transform.py`.
     3.  Copy the function code into the new files.
     4.  Refactor the code to meet current standards (typing, docstrings).
   * **Testing (`iqid_alphas/tests/utils/`)**:
@@ -142,7 +142,7 @@ git push origin main
 **✅ PHASE 1 COMPLETED SUCCESSFULLY!**
 
 **Completed Tasks:**
-- [x] **Task 1**: Utils migration (`io_utils.py`, `math_utils.py`) - **COMPLETE**
+- [x] **Task 1**: Utils migration (`io_utils.py`, `math.py`) - **COMPLETE**
 - [x] **Task 2**: Tissue segmentation (`TissueSeparator` class) - **COMPLETE** 
 - [x] **Sub-Task 2.1**: Reverse mapping framework (`mapping.py`) - **COMPLETE** (18/18 tests passing)
 - [x] **Task 3**: Slice alignment (modular `alignment/` package) - **COMPLETE**
@@ -170,7 +170,7 @@ iqid_alphas/
 │       └── aligner.py            # MultiModalAligner
 ├── utils/
 │   ├── io_utils.py               # File I/O and image loading
-│   └── math_utils.py             # Mathematical utilities
+│   └── math.py             # Mathematical utilities
 └── tests/                        # Comprehensive test suite
 ```
 
@@ -182,7 +182,7 @@ This tracker reflects the new migration-focused tasks.
 
 | Task ID | Module / File | Key Commits (Examples) | Git Branch | Status | Test Status | PR Link |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **1** | `iqid_alphas/utils/*_utils.py` | `feat(utils): Migrate I/O helpers from legacy` \<br\> `test(utils): Add characterization tests for I/O` | `feature/utils-migration` | ✅ Complete | ✅ Tests Written | Created io_utils.py, math_utils.py, transform_utils.py with characterization tests |
+| **1** | `iqid_alphas/utils/*_utils.py` | `feat(utils): Migrate I/O helpers from legacy` \<br\> `test(utils): Add characterization tests for I/O` | `feature/utils-migration` | ✅ Complete | ✅ Tests Written | Created io_utils.py, math.py, transform.py with characterization tests |
 | **2** | `iqid_alphas/core/tissue_segmentation.py`| `refactor(segmentation): Migrate process_object logic` \<br\> `feat(segmentation): Implement TissueSeparator class` | `feature/core-tissue-segmentation` | ✅ Complete | ✅ Tests Written | Migrated and tested segmentation logic with validation |
 | **2.1** | `iqid_alphas/core/mapping.py` | `feat(mapping): Implement reverse mapping framework` \<br\> `test(mapping): Add comprehensive mapping tests` | `feature/core-tissue-segmentation` | ✅ **COMPLETED** | ✅ **18/18 TESTS PASSING** | **Reverse mapping evaluation framework ready** |
 | **3** | `iqid_alphas/core/alignment/` | `refactor(alignment): Modularize into aligner package` \<br\> `feat(alignment): Create unified aligner interface` | `feature/core-tissue-segmentation` | ✅ **COMPLETED** | ✅ **Tests Passing** | **Modular alignment package with SimpleAligner, EnhancedAligner, StackAligner, UnifiedAligner** |

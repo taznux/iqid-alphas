@@ -36,7 +36,7 @@ except ImportError:
 
 # Internal imports
 from ..utils.io_utils import natural_sort, find_files_with_pattern, ensure_directory_exists
-from ..utils.math_utils import normalize_array, calculate_statistics
+from ..utils.math import normalize_array, calculate_statistics
 
 
 class TissueSeparator:

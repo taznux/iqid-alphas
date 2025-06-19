@@ -22,7 +22,7 @@ from .types import (
 from .scheduler import JobScheduler, ResourceMonitor
 from .workers import WorkerManager
 from .storage import ResultsStorage
-from ...utils.io_utils import list_directories, natural_sort
+from ...utils.io import list_directories, natural_sort
 
 logger = logging.getLogger(__name__)
 

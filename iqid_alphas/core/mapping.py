@@ -24,7 +24,7 @@ except ImportError:
     HAS_SKIMAGE = False
 
 # Internal imports
-from ..utils.io_utils import natural_sort
+from ..utils.io import natural_sort
 
 
 @dataclass

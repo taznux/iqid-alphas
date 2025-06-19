@@ -26,7 +26,7 @@ from ..mapping import ReverseMapper
 from ..tissue_segmentation import TissueSeparator
 from ..alignment.aligner import UnifiedAligner
 from ..coregistration import MultiModalAligner, RegistrationMethod
-from ...utils.io_utils import load_image
+from ...utils.io import load_image
 
 logger = logging.getLogger(__name__)
 

@@ -20,7 +20,7 @@ from ..tissue_segmentation import TissueSeparator
 from ..alignment.aligner import UnifiedAligner
 from ..coregistration import MultiModalAligner
 from ..validation import ValidationSuite
-from ...utils.io_utils import load_image, save_image
+from ...utils.io import load_image, save_image
 
 logger = logging.getLogger(__name__)
 

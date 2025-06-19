@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, Union
 import numpy as np
 
 from .types import GroundTruth, ValidationResult
-from ...utils.io_utils import load_image, natural_sort, list_directories
+from ...utils.io import load_image, natural_sort, list_directories
 
 logger = logging.getLogger(__name__)
 

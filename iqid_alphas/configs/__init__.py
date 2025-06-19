@@ -10,10 +10,10 @@ Keeps under 500 lines by focusing on configuration management only.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, List
 from dataclasses import dataclass, field
 
-from ..utils.io_utils import ensure_directory_exists
+from ..utils.io import ensure_directory_exists
 
 
 @dataclass

@@ -18,13 +18,13 @@ from iqid_alphas.utils.io_utils import (
     natural_sort_key,
     natural_sort
 )
-from iqid_alphas.utils.math_utils import (
+from iqid_alphas.utils.math import (
     bin_ndarray,
     decompose_affine,
     percent_error,
     check_monotonic
 )
-from iqid_alphas.utils.transform_utils import (
+from iqid_alphas.utils.transform import (
     get_time_difference,
     create_affine_matrix,
     apply_affine_transform

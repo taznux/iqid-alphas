@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List, Union
 from dataclasses import dataclass, asdict
 
-from ..utils.io_utils import setup_logging
+from ..utils.io import setup_logging
 from ..core.validation import ValidationResult
 
 

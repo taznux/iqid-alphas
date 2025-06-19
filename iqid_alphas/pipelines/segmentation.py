@@ -1,309 +1,459 @@
 #!/usr/bin/env python3
 """
-Segmentation Pipeline for ReUpload Dataset
+Segmentation Pipeline for IQID-Alphas
 
-Validates automated tissue separation against ground truth.
-Processes multi-tissue raw iQID images and separates them into individual tissue stacks.
+Implements Raw → Segmented validation pipeline using Phase 1 tissue segmentation
+components. Validates automated tissue separation against ground truth data.
 
-Pipeline: Raw iQID Images → Segmented Tissue Stacks
-Dataset: ReUpload (workflow validation)
-Ground Truth: 1_segmented/ directories
+Architecture: Inherits from BasePipeline, integrates Phase 1 components.
+Module size: <500 lines following architectural guidelines.
 """
 
 import logging
-import numpy as np
+import time
 from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass, asdict
+from typing import Dict, List, Any, Optional, Union
+from dataclasses import dataclass
 
-# Import core modules (will be implemented)
-# TODO: Implement iqid_alphas.core.tissue_segmentation module
-# from iqid_alphas.core.tissue_segmentation import TissueSeparator
-# TODO: Implement iqid_alphas.core.validation module
-# from iqid_alphas.core.validation import ValidationSuite
-# TODO: Implement iqid_alphas.core.batch_processor module
-# from iqid_alphas.core.batch_processor import BatchProcessor
+from .base import BasePipeline, PipelineConfig
+from ..core.tissue_segmentation import TissueSeparator
+from ..core.validation import ValidationResult, ValidationSuite
+from ..core.batch_processing import BatchProcessor
+from ..core.mapping import ReverseMapper
+from ..configs import load_pipeline_config
+from ..utils.io import ensure_directory_exists
 
 
 @dataclass
-class SegmentationResult:
-    """Container for segmentation pipeline results"""
-    sample_group_id: str
-    raw_image_path: str
-    success: bool
-    tissue_results: Dict[str, Dict]  # tissue_type -> segmentation metrics
-    processing_time: float
-    total_tissues_found: int
-    total_tissues_expected: int
-    overall_iou: float
-    overall_dice: float
-    error_message: Optional[str] = None
-    visualization_paths: Optional[List[str]] = None
+class SegmentationPipelineConfig(PipelineConfig):
+    """Segmentation-specific pipeline configuration."""
+    
+    # Segmentation parameters
+    segmentation_method: str = "adaptive_clustering"
+    min_blob_area: int = 50
+    max_blob_area: int = 50000
+    preserve_blobs: bool = True
+    use_clustering: bool = True
+    
+    # Quality control
+    min_tissue_area: int = 100
+    max_tissue_area: int = 1000000
+    aspect_ratio_threshold: float = 10.0
+    
+    @classmethod
+    def from_config_file(cls, config_path: Optional[Path] = None) -> 'SegmentationPipelineConfig':
+        """Load configuration from file."""
+        config_dict = load_pipeline_config("segmentation", config_path)
+        
+        # Extract pipeline-specific parameters
+        seg_config = config_dict.get("segmentation", {})
+        pipeline_config = config_dict.get("pipeline", {})
+        processing_config = config_dict.get("processing", {})
+        
+        return cls(
+            data_path="",  # Will be set during initialization
+            output_dir="",  # Will be set during initialization
+            max_samples=processing_config.get("batch_size"),
+            parallel_workers=pipeline_config.get("max_workers", 4),
+            memory_limit_gb=pipeline_config.get("memory_limit_gb"),
+            validation_enabled=config_dict.get("validation", {}).get("generate_visualizations", True),
+            generate_visualizations=config_dict.get("validation", {}).get("generate_visualizations", True),
+            log_level=pipeline_config.get("log_level", "INFO"),
+            segmentation_method=seg_config.get("method", "adaptive_clustering"),
+            min_blob_area=seg_config.get("min_blob_area", 50),
+            max_blob_area=seg_config.get("max_blob_area", 50000),
+            preserve_blobs=seg_config.get("preserve_blobs", True),
+            use_clustering=seg_config.get("use_clustering", True),
+            min_tissue_area=config_dict.get("quality_control", {}).get("min_tissue_area", 100),
+            max_tissue_area=config_dict.get("quality_control", {}).get("max_tissue_area", 1000000),
+            aspect_ratio_threshold=config_dict.get("quality_control", {}).get("aspect_ratio_threshold", 10.0)
+        )
 
 
-class SegmentationPipeline:
+class SegmentationPipeline(BasePipeline):
     """
-    Segmentation Pipeline for ReUpload Dataset
+    Raw → Segmented validation pipeline.
     
-    Validates automated tissue separation from multi-tissue raw iQID images
-    against manually segmented ground truth data.
+    Processes multi-tissue raw iQID images and validates automated tissue
+    separation against ground truth data using Phase 1 components.
     """
     
-    def __init__(self, data_path: str, output_dir: str, config_path: Optional[str] = None):
+    def __init__(self, data_path: Union[str, Path], output_dir: Union[str, Path],
+                 config: Optional[SegmentationPipelineConfig] = None,
+                 config_path: Optional[Path] = None):
         """
-        Initialize segmentation pipeline
+        Initialize segmentation pipeline.
         
         Args:
             data_path: Path to ReUpload dataset
-            output_dir: Output directory for results
-            config_path: Optional configuration file path
+            output_dir: Output directory for results  
+            config: Pipeline configuration (optional)
+            config_path: Path to configuration file (optional)
         """
-        self.data_path = Path(data_path)
-        self.output_dir = Path(output_dir)
-        self.config_path = Path(config_path) if config_path else None
+        # Load configuration if not provided
+        if config is None:
+            config = SegmentationPipelineConfig.from_config_file(config_path)
         
-        # Create output directory
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        # Set data and output paths
+        config.data_path = str(data_path)
+        config.output_dir = str(output_dir)
         
-        # Setup logging
-        self.logger = self._setup_logging()
+        # Initialize base pipeline
+        super().__init__(config)
         
-        # TODO: Initialize core components
-        # self.tissue_separator = TissueSeparator(method='adaptive_clustering')
-        # self.validator = ValidationSuite()
-        # self.batch_processor = BatchProcessor(str(self.data_path), str(self.output_dir))
+        # Initialize Phase 1 components
+        self.tissue_separator = TissueSeparator(method=config.segmentation_method)
+        self.validator = ValidationSuite()
+        self.batch_processor = BatchProcessor(str(data_path), str(output_dir))
+        self.reverse_mapper = ReverseMapper()
         
-        # Results storage
-        self.results: List[SegmentationResult] = []
-        
-        self.logger.info(f"Initialized SegmentationPipeline")
-        self.logger.info(f"Data path: {self.data_path}")
-        self.logger.info(f"Output path: {self.output_dir}")
+        self.logger.info("SegmentationPipeline initialized with Phase 1 components")
     
-    def _setup_logging(self) -> logging.Logger:
-        """Setup logging configuration"""
-        # TODO: Implement comprehensive logging setup
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        return logging.getLogger("SegmentationPipeline")
-    
-    def run_validation(self, max_samples: Optional[int] = None) -> Dict:
+    def discover_samples(self) -> List[Dict[str, Any]]:
         """
-        Run complete segmentation validation pipeline
+        Discover raw image samples for segmentation processing.
         
-        Args:
-            max_samples: Maximum number of sample groups to process
-            
         Returns:
-            Dictionary containing validation results and summary statistics
+            List of sample dictionaries with metadata
         """
-        self.logger.info("Starting segmentation validation pipeline")
+        self.logger.info("Discovering raw image samples...")
         
-        try:
-            # TODO: Implement sample discovery and grouping
-            # sample_groups = self.batch_processor.group_samples_by_raw_image()
-            # self.logger.info(f"Found {len(sample_groups)} sample groups")
-            
-            # TODO: Implement batch processing
-            # processed_groups = 0
-            # for group_id, group_info in sample_groups.items():
-            #     if max_samples and processed_groups >= max_samples:
-            #         break
-            #     
-            #     result = self.process_sample_group(group_info['raw_image_path'], group_info['ground_truth_group'])
-            #     self.results.append(result)
-            #     processed_groups += 1
-            
-            # TODO: Temporary placeholder implementation
-            self.logger.warning("TODO: Implement sample discovery and processing")
-            
-            # Generate summary statistics
-            summary = self._generate_summary_stats()
-            
-            # Save results
-            self._save_results(summary)
-            
-            self.logger.info("Segmentation validation pipeline completed")
-            return summary
-            
-        except Exception as e:
-            self.logger.error(f"Pipeline failed: {str(e)}")
-            return {'error': str(e), 'status': 'failed'}
-    
-    def process_sample_group(self, raw_image_path: Path, ground_truth_group: Dict[str, Path]) -> SegmentationResult:
-        """
-        Process a single sample group (one raw image -> multiple tissue ground truths)
+        samples = []
+        data_path = Path(self.config.data_path)
         
-        Args:
-            raw_image_path: Path to raw multi-tissue iQID image
-            ground_truth_group: Dictionary mapping tissue_type -> ground_truth_dir
-            
-        Returns:
-            SegmentationResult containing processing results and metrics
-        """
-        start_time = datetime.now()
-        sample_group_id = raw_image_path.stem
+        # Look for raw image files (typically in raw/ or root directory)
+        raw_patterns = ["raw/*.tiff", "raw/*.tif", "*.tiff", "*.tif"]
         
-        self.logger.info(f"Processing sample group: {sample_group_id}")
+        for pattern in raw_patterns:
+            raw_files = list(data_path.glob(pattern))
+            if raw_files:
+                break
         
-        try:
-            # TODO: Implement tissue separation
-            # automated_results = self.tissue_separator.separate_tissues(str(raw_image_path))
-            # Expected format: {'kidney_L': [slice_paths], 'kidney_R': [...], 'tumor': [...]}
+        if not raw_files:
+            raise FileNotFoundError(f"No raw image files found in {data_path}")
+        
+        for raw_file in raw_files:
+            # Extract sample ID (e.g., D1M1, D2M2, etc.)
+            sample_id = raw_file.stem
             
-            # TODO: Implement validation against ground truth
-            # tissue_results = {}
-            # for tissue_type, gt_dir in ground_truth_group.items():
-            #     if tissue_type in automated_results:
-            #         metrics = self.validator.compare_segmentation_results(
-            #             automated_results[tissue_type], 
-            #             gt_dir
-            #         )
-            #         tissue_results[tissue_type] = metrics
+            # Look for corresponding ground truth directory
+            gt_dir = data_path / "1_segmented" / sample_id
             
-            # TODO: Calculate overall metrics
-            # overall_iou = np.mean([result['iou'] for result in tissue_results.values()])
-            # overall_dice = np.mean([result['dice'] for result in tissue_results.values()])
-            
-            # TODO: Generate visualizations
-            # viz_paths = self._create_segmentation_visualizations(
-            #     sample_group_id, raw_image_path, automated_results, ground_truth_group
-            # )
-            
-            # TODO: Temporary placeholder result
-            processing_time = (datetime.now() - start_time).total_seconds()
-            
-            result = SegmentationResult(
-                sample_group_id=sample_group_id,
-                raw_image_path=str(raw_image_path),
-                success=False,  # TODO: Set to True when implemented
-                tissue_results={},  # TODO: Populate with actual results
-                processing_time=processing_time,
-                total_tissues_found=0,  # TODO: Count from automated_results
-                total_tissues_expected=len(ground_truth_group),
-                overall_iou=0.0,  # TODO: Calculate from tissue_results
-                overall_dice=0.0,  # TODO: Calculate from tissue_results
-                error_message="TODO: Implement tissue separation and validation",
-                visualization_paths=[]  # TODO: Add visualization paths
-            )
-            
-            self.logger.warning(f"TODO: Complete implementation for {sample_group_id}")
-            return result
-            
-        except Exception as e:
-            processing_time = (datetime.now() - start_time).total_seconds()
-            self.logger.error(f"Failed to process {sample_group_id}: {str(e)}")
-            
-            return SegmentationResult(
-                sample_group_id=sample_group_id,
-                raw_image_path=str(raw_image_path),
-                success=False,
-                tissue_results={},
-                processing_time=processing_time,
-                total_tissues_found=0,
-                total_tissues_expected=len(ground_truth_group),
-                overall_iou=0.0,
-                overall_dice=0.0,
-                error_message=str(e)
-            )
-    
-    def _create_segmentation_visualizations(self, sample_id: str, raw_image_path: Path,
-                                          automated_results: Dict, ground_truth_group: Dict) -> List[str]:
-        """Create visualization comparing automated vs ground truth segmentation"""
-        # TODO: Implement visualization creation
-        # - Side-by-side comparison of automated vs ground truth
-        # - Overlay visualizations showing differences
-        # - Quality metric annotations
-        # - Save to output directory with meaningful names
-        self.logger.warning("TODO: Implement segmentation visualizations")
-        return []
-    
-    def _generate_summary_stats(self) -> Dict:
-        """Generate summary statistics from all processed results"""
-        if not self.results:
-            return {
-                'status': 'no_results',
-                'total_groups': 0,
-                'successful_segmentations': 0,
-                'failed_segmentations': 0,
-                'avg_iou': 0.0,
-                'avg_dice': 0.0,
-                'total_time': 0.0
+            sample_info = {
+                "id": sample_id,
+                "raw_image_path": raw_file,
+                "ground_truth_dir": gt_dir if gt_dir.exists() else None,
+                "has_ground_truth": gt_dir.exists()
             }
+            
+            samples.append(sample_info)
         
-        # TODO: Implement comprehensive statistics calculation
-        successful = [r for r in self.results if r.success]
-        failed = [r for r in self.results if not r.success]
+        self.logger.info(f"Discovered {len(samples)} raw image samples")
+        return samples
+    
+    def process_sample(self, sample: Dict[str, Any]) -> ValidationResult:
+        """
+        Process a single raw image sample for tissue segmentation.
         
-        # TODO: Calculate actual metrics when implementation is complete
-        summary = {
-            'status': 'completed',
-            'total_groups': len(self.results),
-            'successful_segmentations': len(successful),
-            'failed_segmentations': len(failed),
-            'success_rate': len(successful) / len(self.results) if self.results else 0.0,
-            'avg_iou': 0.0,  # TODO: Calculate from successful results
-            'avg_dice': 0.0,  # TODO: Calculate from successful results
-            'total_time': sum(r.processing_time for r in self.results),
-            'avg_processing_time': np.mean([r.processing_time for r in self.results]),
-            'tissue_type_performance': {},  # TODO: Break down by tissue type
-            'quality_distribution': {},  # TODO: IoU/Dice score distributions
-            'error_analysis': {}  # TODO: Categorize failure modes
+        Args:
+            sample: Sample dictionary with metadata
+            
+        Returns:
+            ValidationResult with segmentation outcomes
+        """
+        sample_id = sample["id"]
+        raw_image_path = sample["raw_image_path"]
+        ground_truth_dir = sample["ground_truth_dir"]
+        
+        start_time = time.time()
+        
+        try:
+            self.logger.debug(f"Processing segmentation for sample: {sample_id}")
+            
+            # Perform tissue separation using Phase 1 component
+            segmentation_results = self.tissue_separator.separate_tissues(str(raw_image_path))
+            
+            # Initialize metrics
+            metrics = {
+                "total_tissues_found": len(segmentation_results),
+                "processing_time": time.time() - start_time
+            }
+            
+            # Validate against ground truth if available
+            if ground_truth_dir and sample["has_ground_truth"]:
+                validation_metrics = self._validate_against_ground_truth(
+                    segmentation_results, ground_truth_dir, sample_id
+                )
+                metrics.update(validation_metrics)
+            else:
+                self.logger.warning(f"No ground truth available for sample {sample_id}")
+                metrics.update({
+                    "avg_iou": 0.0,
+                    "avg_dice": 0.0,
+                    "validation_status": "no_ground_truth"
+                })
+            
+            # Save intermediate results if configured
+            if self.config.extra_params.get("save_intermediate", True):
+                self._save_intermediate_results(sample_id, segmentation_results)
+            
+            return ValidationResult(
+                sample_id=sample_id,
+                success=True,
+                metrics=metrics,
+                processing_time=time.time() - start_time
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Failed to process sample {sample_id}: {str(e)}")
+            return ValidationResult(
+                sample_id=sample_id,
+                success=False,
+                error_message=str(e),
+                metrics={},
+                processing_time=time.time() - start_time
+            )
+    
+    def validate_results(self, results: List[Dict[str, Any]]) -> ValidationResult:
+        """
+        Validate overall pipeline results and calculate aggregate metrics.
+        
+        Args:
+            results: List of individual sample results
+            
+        Returns:
+            ValidationResult with aggregate metrics
+        """
+        if not results:
+            return ValidationResult(
+                sample_id="pipeline_aggregate",
+                success=False,
+                error_message="No results to validate",
+                metrics={},
+                processing_time=0.0
+            )
+        
+        # Calculate aggregate metrics
+        successful_results = [r for r in results if r.success]
+        
+        if not successful_results:
+            return ValidationResult(
+                sample_id="pipeline_aggregate",
+                success=False,
+                error_message="No successful results",
+                metrics={"total_samples": len(results), "successful_samples": 0},
+                processing_time=0.0
+            )
+        
+        # Extract metrics from successful results
+        iou_scores = [r.metrics.get("avg_iou", 0.0) for r in successful_results 
+                     if "avg_iou" in r.metrics]
+        dice_scores = [r.metrics.get("avg_dice", 0.0) for r in successful_results 
+                      if "avg_dice" in r.metrics]
+        processing_times = [r.processing_time for r in successful_results]
+        
+        aggregate_metrics = {
+            "total_samples": len(results),
+            "successful_samples": len(successful_results),
+            "success_rate": len(successful_results) / len(results),
+            "avg_processing_time": sum(processing_times) / len(processing_times) if processing_times else 0.0,
         }
         
-        self.logger.info(f"Generated summary stats: {summary['total_groups']} groups processed")
-        return summary
-    
-    def _save_results(self, summary: Dict):
-        """Save pipeline results to output directory"""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        if iou_scores:
+            aggregate_metrics.update({
+                "avg_iou": sum(iou_scores) / len(iou_scores),
+                "min_iou": min(iou_scores),
+                "max_iou": max(iou_scores)
+            })
         
-        # TODO: Save comprehensive results
-        # - Individual result details (JSON)
-        # - Summary statistics (JSON)
-        # - Processing report (Markdown)
-        # - Quality metrics (CSV for analysis)
+        if dice_scores:
+            aggregate_metrics.update({
+                "avg_dice": sum(dice_scores) / len(dice_scores),
+                "min_dice": min(dice_scores),
+                "max_dice": max(dice_scores)
+            })
         
-        # Save summary
-        summary_path = self.output_dir / f"segmentation_summary_{timestamp}.json"
-        # TODO: Implement JSON serialization with proper numpy handling
-        # with open(summary_path, 'w') as f:
-        #     json.dump(summary, f, indent=2, default=self._json_serializer)
+        return ValidationResult(
+            sample_id="pipeline_aggregate",
+            success=True,
+            metrics=aggregate_metrics,
+            processing_time=sum(processing_times)
+        )
+    
+    def _validate_against_ground_truth(self, segmentation_results: Dict[str, List[Path]], 
+                                     ground_truth_dir: Path, sample_id: str) -> Dict[str, float]:
+        """
+        Validate segmentation results against ground truth using reverse mapping.
         
-        self.logger.info(f"TODO: Save results to {self.output_dir}")
+        Args:
+            segmentation_results: Results from tissue separator
+            ground_truth_dir: Directory containing ground truth data
+            sample_id: Sample identifier
+            
+        Returns:
+            Dictionary containing validation metrics
+        """
+        self.logger.debug(f"Validating {sample_id} against ground truth")
+        
+        try:
+            # Use Phase 1 reverse mapper for validation
+            validation_result = self.reverse_mapper.validate_segmentation_against_ground_truth(
+                automated_results=segmentation_results,
+                ground_truth_dir=ground_truth_dir
+            )
+            
+            return {
+                "avg_iou": validation_result.get("average_iou", 0.0),
+                "avg_dice": validation_result.get("average_dice", 0.0),
+                "avg_precision": validation_result.get("average_precision", 0.0),
+                "avg_recall": validation_result.get("average_recall", 0.0),
+                "total_tissues_expected": validation_result.get("total_tissues", 0),
+                "validation_status": "completed"
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Ground truth validation failed for {sample_id}: {str(e)}")
+            return {
+                "avg_iou": 0.0,
+                "avg_dice": 0.0,
+                "validation_status": "failed",
+                "validation_error": str(e)
+            }
     
-    def generate_report(self, results: Dict):
-        """Generate comprehensive HTML/Markdown report"""
-        # TODO: Implement report generation
-        # - Executive summary
-        # - Detailed metrics by tissue type
-        # - Quality distribution plots
-        # - Failure analysis
-        # - Recommendations for improvement
-        self.logger.warning("TODO: Implement comprehensive report generation")
+    def _save_intermediate_results(self, sample_id: str, 
+                                 segmentation_results: Dict[str, List[Path]]) -> None:
+        """
+        Save intermediate segmentation results.
+        
+        Args:
+            sample_id: Sample identifier
+            segmentation_results: Segmentation results to save
+        """
+        try:
+            intermediate_dir = Path(self.config.output_dir) / "intermediate" / sample_id
+            ensure_directory_exists(intermediate_dir)
+            
+            # Save segmentation result metadata
+            metadata = {
+                "sample_id": sample_id,
+                "total_tissues": len(segmentation_results),
+                "tissue_types": list(segmentation_results.keys()),
+                "tissue_counts": {tissue: len(paths) for tissue, paths in segmentation_results.items()}
+            }
+            
+            import json
+            with open(intermediate_dir / "segmentation_metadata.json", "w") as f:
+                json.dump(metadata, f, indent=2)
+            
+            self.logger.debug(f"Saved intermediate results for {sample_id}")
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to save intermediate results for {sample_id}: {str(e)}")
     
-    def _json_serializer(self, obj):
-        """JSON serializer for numpy types"""
-        # TODO: Implement proper numpy type handling for JSON serialization
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        elif isinstance(obj, Path):
-            return str(obj)
-        raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+    def generate_detailed_report(self, results: List[ValidationResult]) -> None:
+        """
+        Generate detailed segmentation pipeline report.
+        
+        Args:
+            results: List of validation results
+        """
+        report_path = Path(self.config.output_dir) / "segmentation_detailed_report.md"
+        
+        try:
+            with open(report_path, 'w') as f:
+                f.write("# Segmentation Pipeline Detailed Report\n\n")
+                f.write(f"**Pipeline**: Raw → Segmented Validation\n")
+                f.write(f"**Dataset**: {self.config.data_path}\n")
+                f.write(f"**Total Samples**: {len(results)}\n")
+                
+                successful_results = [r for r in results if r.success]
+                f.write(f"**Successful**: {len(successful_results)}\n")
+                f.write(f"**Failed**: {len(results) - len(successful_results)}\n\n")
+                
+                # Summary statistics
+                if successful_results:
+                    iou_scores = [r.metrics.get("avg_iou", 0.0) for r in successful_results 
+                                 if "avg_iou" in r.metrics]
+                    if iou_scores:
+                        f.write("## Quality Metrics Summary\n\n")
+                        f.write(f"- **Average IoU**: {sum(iou_scores)/len(iou_scores):.3f}\n")
+                        f.write(f"- **Min IoU**: {min(iou_scores):.3f}\n")
+                        f.write(f"- **Max IoU**: {max(iou_scores):.3f}\n\n")
+                
+                # Individual sample results
+                f.write("## Individual Sample Results\n\n")
+                for result in results:
+                    status = "✅ SUCCESS" if result.success else "❌ FAILED"
+                    f.write(f"### {result.sample_id} - {status}\n\n")
+                    
+                    if result.success and result.metrics:
+                        f.write("**Metrics:**\n")
+                        for metric, value in result.metrics.items():
+                            if isinstance(value, float):
+                                f.write(f"- {metric}: {value:.4f}\n")
+                            else:
+                                f.write(f"- {metric}: {value}\n")
+                    
+                    if result.error_message:
+                        f.write(f"**Error:** {result.error_message}\n")
+                    
+                    f.write(f"**Processing Time:** {result.processing_time:.2f}s\n\n")
+            
+            self.logger.info(f"Detailed report saved to: {report_path}")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to generate detailed report: {str(e)}")
 
 
+# Convenience function for CLI usage
+def run_segmentation_pipeline(data_path: str, output_dir: str, 
+                            max_samples: Optional[int] = None,
+                            config_path: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Convenience function to run segmentation pipeline.
+    
+    Args:
+        data_path: Path to input data
+        output_dir: Output directory
+        max_samples: Maximum samples to process
+        config_path: Optional configuration file
+        
+    Returns:
+        Pipeline execution summary
+    """
+    # Load configuration
+    config = SegmentationPipelineConfig.from_config_file(
+        Path(config_path) if config_path else None
+    )
+    
+    if max_samples:
+        config.max_samples = max_samples
+    
+    # Initialize and run pipeline
+    pipeline = SegmentationPipeline(data_path, output_dir, config)
+    result = pipeline.run()
+    
+    # Generate detailed report
+    pipeline.generate_detailed_report(result.sample_results)
+    
+    return {
+        "pipeline_name": "SegmentationPipeline",
+        "total_samples": result.total_samples,
+        "successful_samples": result.successful_samples,
+        "failed_samples": result.failed_samples,
+        "success_rate": result.success_rate,
+        "duration": result.duration,
+        "metrics": result.metrics,
+        "output_dir": str(output_dir)
+    }
+
+
+# Main CLI entry point
 def main():
-    """Main entry point for testing the segmentation pipeline"""
+    """Main entry point for segmentation pipeline CLI"""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Segmentation Pipeline")
+    parser = argparse.ArgumentParser(description="IQID-Alphas Segmentation Pipeline")
     parser.add_argument("--data", required=True, help="Path to ReUpload dataset")
     parser.add_argument("--output", default="outputs/segmentation", help="Output directory")
     parser.add_argument("--config", help="Configuration file path")
@@ -311,30 +461,25 @@ def main():
     
     args = parser.parse_args()
     
-    # Initialize and run pipeline
-    pipeline = SegmentationPipeline(
+    # Run pipeline
+    result = run_segmentation_pipeline(
         data_path=args.data,
         output_dir=args.output,
+        max_samples=args.max_samples,
         config_path=args.config
     )
-    
-    # Execute validation
-    results = pipeline.run_validation(max_samples=args.max_samples)
-    
-    # Generate report
-    pipeline.generate_report(results)
     
     # Print summary
     print("\n" + "="*60)
     print("SEGMENTATION PIPELINE RESULTS")
     print("="*60)
-    print(f"📊 Status: {results.get('status', 'unknown')}")
-    print(f"📊 Total groups: {results.get('total_groups', 0)}")
-    print(f"✅ Successful: {results.get('successful_segmentations', 0)}")
-    print(f"❌ Failed: {results.get('failed_segmentations', 0)}")
-    print(f"📈 Success rate: {results.get('success_rate', 0.0):.1%}")
-    print(f"⏱️  Total time: {results.get('total_time', 0.0):.2f}s")
-    print("\n⚠️  TODO: Complete pipeline implementation")
+    print(f"📊 Pipeline: {result['pipeline_name']}")
+    print(f"📊 Total samples: {result['total_samples']}")
+    print(f"✅ Successful: {result['successful_samples']}")
+    print(f"❌ Failed: {result['failed_samples']}")
+    print(f"📈 Success rate: {result['success_rate']:.1%}")
+    print(f"⏱️  Duration: {result['duration']:.2f}s")
+    print(f"📁 Output: {result['output_dir']}")
 
 
 if __name__ == "__main__":

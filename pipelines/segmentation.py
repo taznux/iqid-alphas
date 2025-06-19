@@ -1,155 +1,132 @@
 #!/usr/bin/env python3
 """
-Segmentation Pipeline Interface
+Segmentation Pipeline CLI Wrapper
 
-Thin interface for ReUpload Raw → Segmented validation pipeline.
-Delegates core implementation to iqid_alphas.pipelines.SegmentationPipeline.
+Thin interface script that delegates to the main segmentation pipeline
+implementation in iqid_alphas.pipelines.segmentation.
 
 Usage:
-    python segmentation.py --data /path/to/ReUpload --output results/segmentation
+    python pipelines/segmentation.py --data /path/to/data --output /path/to/output
 """
 
 import sys
 import argparse
 from pathlib import Path
 
-# Add iqid_alphas to path
-sys.path.insert(0, str(Path(__file__).parent))
+# Add the project root to Python path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# TODO: Import core pipeline when implemented
-try:
-    from iqid_alphas.pipelines.segmentation import SegmentationPipeline
-except ImportError as e:
-    print(f"⚠️  TODO: Core pipeline not yet implemented: {e}")
-    print("     This interface will delegate to iqid_alphas.pipelines.SegmentationPipeline")
-    SegmentationPipeline = None
-
-
-def print_pipeline_summary(results: dict):
-    """Print pipeline execution summary"""
-    print("\n" + "="*60)
-    print("RAW → SEGMENTED PIPELINE RESULTS")
-    print("="*60)
-    
-    if 'error' in results:
-        print(f"❌ Pipeline failed: {results['error']}")
-        return
-    
-    print(f"📊 Total sample groups processed: {results.get('total_groups', 0)}")
-    print(f"✅ Successful segmentations: {results.get('successful_segmentations', 0)}")
-    print(f"❌ Failed segmentations: {results.get('failed_segmentations', 0)}")
-    
-    success_rate = results.get('success_rate', 0.0)
-    print(f"📈 Success rate: {success_rate:.1%}")
-    
-    if 'avg_iou' in results:
-        print(f"📈 Average IoU score: {results['avg_iou']:.3f}")
-    if 'avg_dice' in results:
-        print(f"📈 Average Dice score: {results['avg_dice']:.3f}")
-    
-    total_time = results.get('total_time', 0.0)
-    print(f"⏱️  Total processing time: {total_time:.2f}s")
-    
-    if 'tissue_type_performance' in results and results['tissue_type_performance']:
-        print(f"\n🧬 Tissue Type Performance:")
-        for tissue, perf in results['tissue_type_performance'].items():
-            print(f"   {tissue}: IoU {perf.get('avg_iou', 0):.3f}, "
-                  f"Dice {perf.get('avg_dice', 0):.3f}")
+from iqid_alphas.pipelines.segmentation import run_segmentation_pipeline
 
 
 def main():
-    """Main entry point for segmentation pipeline interface"""
+    """Main CLI entry point for segmentation pipeline."""
     parser = argparse.ArgumentParser(
-        description="Segmentation Pipeline - Raw iQID to Segmented Tissues Validation",
+        description="IQID-Alphas Segmentation Pipeline - Raw → Segmented Validation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Basic validation with default settings
-  python segmentation.py --data /path/to/ReUpload --output results/segmentation
-  
-  # Limit to 5 sample groups for testing
-  python segmentation.py --data /path/to/ReUpload --output results/test --max-samples 5
-  
-  # Use custom configuration
-  python segmentation.py --data /path/to/ReUpload --config custom_config.json
+    # Basic usage
+    python pipelines/segmentation.py --data /path/to/reupload --output results/seg
+
+    # With custom configuration
+    python pipelines/segmentation.py --data /path/to/reupload --output results/seg \\
+        --config configs/segmentation_custom.json
+
+    # Process only first 10 samples
+    python pipelines/segmentation.py --data /path/to/reupload --output results/seg \\
+        --max-samples 10
         """
     )
     
-    parser.add_argument("--data", required=True, 
-                       help="Path to ReUpload dataset root directory")
-    parser.add_argument("--output", default="outputs/segmentation", 
-                       help="Output directory for results and visualizations")
-    parser.add_argument("--config", 
-                       help="Path to configuration file (JSON)")
-    parser.add_argument("--max-samples", type=int, 
-                       help="Maximum number of sample groups to process (for testing)")
-    parser.add_argument("--verbose", action="store_true",
-                       help="Enable verbose logging")
+    # Required arguments
+    parser.add_argument(
+        "--data", 
+        required=True, 
+        help="Path to ReUpload dataset directory"
+    )
+    parser.add_argument(
+        "--output", 
+        required=True,
+        help="Output directory for segmentation results"
+    )
+    
+    # Optional arguments
+    parser.add_argument(
+        "--config", 
+        help="Path to custom configuration JSON file"
+    )
+    parser.add_argument(
+        "--max-samples", 
+        type=int,
+        help="Maximum number of samples to process (useful for testing)"
+    )
+    parser.add_argument(
+        "--verbose", 
+        action="store_true",
+        help="Enable verbose logging output"
+    )
     
     args = parser.parse_args()
     
-    # Validate inputs
+    # Validate input paths
     data_path = Path(args.data)
     if not data_path.exists():
         print(f"❌ Error: Data path does not exist: {data_path}")
-        return 1
+        sys.exit(1)
     
+    if not data_path.is_dir():
+        print(f"❌ Error: Data path is not a directory: {data_path}")
+        sys.exit(1)
+    
+    # Create output directory if it doesn't exist
     output_path = Path(args.output)
+    output_path.mkdir(parents=True, exist_ok=True)
     
-    print("🔬 IQID-Alphas Segmentation Pipeline")
-    print("="*50)
-    print(f"📁 Data path: {data_path}")
-    print(f"📁 Output path: {output_path}")
+    print("�� IQID-Alphas Segmentation Pipeline")
+    print("=" * 50)
+    print(f"📁 Input Data: {data_path}")
+    print(f"📁 Output Dir: {output_path}")
     if args.config:
-        print(f"⚙️  Config: {args.config}")
+        print(f"⚙️  Config File: {args.config}")
     if args.max_samples:
-        print(f"🔢 Max samples: {args.max_samples}")
-    print()
-    
-    # Check if core pipeline is available
-    if SegmentationPipeline is None:
-        print("⚠️  TODO: Core SegmentationPipeline not yet implemented")
-        print("     This interface script is ready to use once the core pipeline is available.")
-        print()
-        print("📋 Expected functionality:")
-        print("   ✓ Discover raw iQID images in ReUpload dataset")
-        print("   ✓ Group samples by shared raw image (D1M1, etc.)")
-        print("   ✓ Run automated tissue separation on each raw image")
-        print("   ✓ Compare results against ground truth in 1_segmented/ directories")
-        print("   ✓ Calculate IoU, Dice, precision, recall metrics")
-        print("   ✓ Generate visualizations and comprehensive report")
-        print()
-        print("🚧 Implementation status: Core pipeline classes with TODO markers created")
-        return 0
+        print(f"🔢 Max Samples: {args.max_samples}")
+    print("=" * 50)
     
     try:
-        # Initialize pipeline
-        print("🚀 Initializing segmentation pipeline...")
-        pipeline = SegmentationPipeline(
+        # Run the segmentation pipeline
+        result = run_segmentation_pipeline(
             data_path=str(data_path),
             output_dir=str(output_path),
+            max_samples=args.max_samples,
             config_path=args.config
         )
         
-        # Execute validation
-        print("⚡ Running segmentation validation...")
-        results = pipeline.run_validation(max_samples=args.max_samples)
+        # Print results summary
+        print("\n✅ SEGMENTATION COMPLETED")
+        print("=" * 50)
+        print(f"�� Total Samples: {result['total_samples']}")
+        print(f"✅ Successful: {result['successful_samples']}")
+        print(f"❌ Failed: {result['failed_samples']}")
+        print(f"📈 Success Rate: {result['success_rate']:.1%}")
+        print(f"⏱️  Duration: {result['duration']:.2f}s")
+        print(f"📁 Results: {result['output_dir']}")
         
-        # Generate comprehensive report
-        print("📊 Generating comprehensive report...")
-        pipeline.generate_report(results)
+        if result['metrics']:
+            print("\n📊 Quality Metrics:")
+            for metric, value in result['metrics'].items():
+                if isinstance(value, float):
+                    print(f"   {metric}: {value:.4f}")
+                else:
+                    print(f"   {metric}: {value}")
         
-        # Print summary
-        print_pipeline_summary(results)
+        return 0
         
-        # Show output location
-        print(f"\n📁 Results saved to: {output_path}")
-        print(f"📊 Visualizations available in: {output_path}/visualizations/")
-        
-        return 0 if results.get('status') != 'failed' else 1
-        
+    except KeyboardInterrupt:
+        print("\n⚠️ Pipeline interrupted by user")
+        return 1
     except Exception as e:
-        print(f"❌ Pipeline execution failed: {str(e)}")
+        print(f"\n❌ Pipeline failed: {str(e)}")
         if args.verbose:
             import traceback
             traceback.print_exc()

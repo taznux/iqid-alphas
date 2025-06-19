@@ -6,8 +6,8 @@ All functions have been modernized with proper typing, documentation, and error 
 
 Modules:
 - io_utils: File I/O and directory management utilities
-- math_utils: Mathematical operations and array manipulations  
-- transform_utils: Geometric transformations and alignment utilities
+- math: Mathematical operations and array manipulations  
+- transform: Geometric transformations and alignment utilities
 - data_discovery: Data discovery utilities (existing)
 """
 
@@ -15,7 +15,7 @@ Modules:
 from .data_discovery import UCSFDataDiscoverer, DataDiscoveryFormatter
 
 # Import key functions from migrated utilities for convenient access
-from .io_utils import (
+from .io import (
     list_directories,
     list_subdirectories,
     natural_sort,
@@ -24,7 +24,7 @@ from .io_utils import (
     copy_file_safe
 )
 
-from .math_utils import (
+from .math import (
     bin_ndarray,
     decompose_affine,
     calculate_statistics,
@@ -33,7 +33,7 @@ from .math_utils import (
     normalize_array
 )
 
-from .transform_utils import (
+from .transform import (
     create_affine_matrix,
     apply_affine_transform,
     estimate_rigid_transform,
@@ -54,7 +54,7 @@ __all__ = [
     'ensure_directory_exists',
     'copy_file_safe',
     
-    # math_utils
+    # math
     'bin_ndarray',
     'decompose_affine',
     'calculate_statistics',
@@ -62,7 +62,7 @@ __all__ = [
     'check_monotonic',
     'normalize_array',
     
-    # transform_utils
+    # transform
     'create_affine_matrix',
     'apply_affine_transform',
     'estimate_rigid_transform', 

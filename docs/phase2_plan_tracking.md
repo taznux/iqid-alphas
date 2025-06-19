@@ -355,7 +355,7 @@ git push origin feature/phase2-segmentation-pipeline
 - ✅ Alignment package (SimpleAligner, EnhancedAligner, etc.)
 - ✅ Coregistration package (MultiModalAligner)
 - ✅ Reverse mapping framework
-- ✅ Core utilities (io_utils, math_utils)
+- ✅ Core utilities (io_utils, math)
 
 ### **External Dependencies**
 - Python 3.11+ 

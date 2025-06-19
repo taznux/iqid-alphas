@@ -100,7 +100,7 @@ transform_result = mapper.calculate_alignment_transform(original, aligned)
 
 ### Utility Modules ✅ **COMPLETED**
 - `iqid_alphas/utils/io_utils.py`: File I/O and image loading
-- `iqid_alphas/utils/math_utils.py`: Mathematical operations and transforms
+- `iqid_alphas/utils/math.py`: Mathematical operations and transforms
 
 ---
 
@@ -487,7 +487,7 @@ iqid_alphas/
 │   └── coregistration.py
 ├── utils/                     # Utilities and adapters
 │   ├── legacy_adapters.py
-│   ├── transform_utils.py
+│   ├── transform.py
 │   └── io_utils.py
 └── visualization/             # Enhanced visualization
     └── enhanced_plotter.py

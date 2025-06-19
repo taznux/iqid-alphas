@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Union, Tuple, Optional
 import numpy as np
 
-from ...utils.io_utils import natural_sort, load_image
+from ...utils.io import natural_sort, load_image
 
 
 def calculate_ssd(image1: np.ndarray, image2: np.ndarray) -> float:
