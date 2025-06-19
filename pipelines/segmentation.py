@@ -16,7 +16,8 @@ from pathlib import Path
 # Add the project root to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from iqid_alphas.pipelines.segmentation import run_segmentation_pipeline
+from iqid_alphas.pipelines.segmentation.pipeline import SegmentationPipeline
+from iqid_alphas.pipelines.segmentation.config import load_config
 
 
 def main():
@@ -94,13 +95,16 @@ Examples:
     print("=" * 50)
     
     try:
+        # Load configuration
+        config = load_config(args.config) if args.config else None
+        
         # Run the segmentation pipeline
-        result = run_segmentation_pipeline(
+        result = SegmentationPipeline(
+            config=config,
             data_path=str(data_path),
             output_dir=str(output_path),
-            max_samples=args.max_samples,
-            config_path=args.config
-        )
+            max_samples=args.max_samples
+        ).run()
         
         # Print results summary
         print("\n✅ SEGMENTATION COMPLETED")

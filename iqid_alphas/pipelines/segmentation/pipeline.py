@@ -95,6 +95,49 @@ class SegmentationPipeline(BasePipeline):
         report_path = Path(self.config.output_dir) / "segmentation_detailed_report.md"
         self.reporter.generate_detailed_report(results, report_path)
         self.logger.info(f"Detailed report saved to: {report_path}")
+    
+    def run(self, max_samples: Optional[int] = None) -> Dict[str, Any]:
+        """
+        Run the segmentation pipeline.
+        
+        Args:
+            max_samples: Maximum number of samples to process (optional)
+        
+        Returns:
+            Dictionary with pipeline run results, including:
+                - total_samples
+                - successful_samples
+                - failed_samples
+                - success_rate
+                - duration
+                - output_dir
+                - metrics (optional)
+        """
+        self.logger.info("Running segmentation pipeline...")
+        
+        # Discover samples
+        samples = self.discover_samples()
+        if max_samples is not None:
+            samples = samples[:max_samples]
+        
+        # Process samples in batch
+        results = self.batch_processor.process(samples, self.process_sample)
+        
+        # Generate reports
+        self.generate_report(results)
+        if hasattr(results, 'sample_results'):
+            self.generate_detailed_report(results.sample_results)
+        
+        self.logger.info("Segmentation pipeline run completed")
+        return {
+            "total_samples": results.total_samples,
+            "successful_samples": results.successful_samples,
+            "failed_samples": results.failed_samples,
+            "success_rate": results.success_rate,
+            "duration": results.duration,
+            "output_dir": str(self.config.output_dir),
+            "metrics": results.performance_metrics if hasattr(results, 'performance_metrics') else {}
+        }
 
 
 def run_segmentation_pipeline(data_path: str, output_dir: str, 
@@ -119,20 +162,14 @@ def run_segmentation_pipeline(data_path: str, output_dir: str,
     
     # Initialize and run pipeline
     pipeline = SegmentationPipeline(data_path, output_dir, config)
-    result = pipeline.run_pipeline(max_samples)
-    
-    # Generate reports
-    pipeline.generate_report(result)
-    if hasattr(result, 'sample_results'):
-        pipeline.generate_detailed_report(result.sample_results)
+    result = pipeline.run(max_samples)
     
     return {
         "pipeline_name": "SegmentationPipeline",
-        "total_samples": result.total_samples,
-        "successful_samples": result.successful_samples,
-        "failed_samples": result.failed_samples,
-        "success_rate": result.success_rate,
-        "duration": result.duration,
-        "performance_metrics": result.performance_metrics,
-        "output_dir": str(output_dir)
+        "total_samples": result["total_samples"],
+        "successful_samples": result["successful_samples"],
+        "failed_samples": result["failed_samples"],
+        "success_rate": result["success_rate"],
+        "duration": result["duration"],
+        "output_dir": result["output_dir"]
     }

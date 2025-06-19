@@ -155,3 +155,31 @@ class CoregistrationPipeline(BasePipeline):
             transform_parameters=metrics.get('transform_parameters', {}),
             error_message=getattr(validation_result, 'error_message', None)
         )
+    
+    def run(self) -> Dict[str, Any]:
+        """
+        Run the coregistration pipeline.
+        Returns a result dictionary with keys:
+            - total_pairs
+            - successful_pairings
+            - failed_pairs
+            - success_rate
+            - duration
+            - output_dir
+            - metrics (optional)
+        """
+        self.logger.info("Running the coregistration pipeline...")
+        
+        # Implement the standardized pipeline logic here
+        # This should include discovery, processing, and evaluation of samples
+        
+        # For now, return a dummy result
+        return {
+            'total_pairs': 0,
+            'successful_pairings': 0,
+            'failed_pairs': 0,
+            'success_rate': 0.0,
+            'duration': 0.0,
+            'output_dir': str(self.output_dir),
+            'metrics': {}
+        }

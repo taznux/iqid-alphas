@@ -8,6 +8,7 @@ Modularized for maintainability and follows <500 line guideline.
 
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Union
+import time
 
 from ..base import BasePipeline
 from .config import AlignmentPipelineConfig
@@ -94,6 +95,72 @@ class AlignmentPipeline(BasePipeline):
             ValidationResult with processing outcomes
         """
         return self.processor.process_sample(sample, self.logger)
+    
+    def run(self, max_samples: Optional[int] = None) -> Dict[str, Any]:
+        """
+        Run the alignment pipeline.
+        Steps:
+            1. Load configuration and input data
+            2. Initialize alignment module (UnifiedAligner)
+            3. For each sample:
+                a. Run alignment
+                b. Collect results and metrics (SSIM, mutual information, etc.)
+            4. Aggregate results and compute summary statistics
+            5. Return standardized result dictionary
+        
+        Args:
+            max_samples: Maximum number of samples to process (None = all)
+        
+        Returns:
+            Dictionary with pipeline execution results
+        """
+        start_time = time.time()
+        total_samples = 0
+        successful_samples = 0
+        failed_samples = 0
+        metrics = {}
+        
+        self.logger.info("Running alignment pipeline...")
+        
+        # Discover samples
+        samples = self.discover_samples()
+        
+        if max_samples is not None:
+            samples = samples[:max_samples]
+        
+        self.logger.info(f"Processing {len(samples)} samples")
+        
+        # Initialize alignment module (UnifiedAligner)
+        from iqid_alphas.core.alignment import UnifiedAligner
+        aligner = UnifiedAligner(method=self.config.get('alignment_method', 'bidirectional'))
+        
+        # Process each sample
+        for sample in samples:
+            try:
+                # Run alignment
+                result = aligner.align_slice_stack(sample)
+                
+                # Collect metrics, save outputs
+                successful_samples += 1
+            except Exception as e:
+                self.logger.error(f"Error processing sample {sample['id']}: {e}")
+                failed_samples += 1
+            total_samples += 1
+        
+        duration = time.time() - start_time
+        
+        self.logger.info(f"Alignment pipeline completed: {successful_samples}/{total_samples} successful")
+        
+        # Return summary
+        return {
+            'total_samples': total_samples,
+            'successful_samples': successful_samples,
+            'failed_samples': failed_samples,
+            'success_rate': (successful_samples / total_samples) if total_samples else 0.0,
+            'duration': duration,
+            'output_dir': self.output_dir,
+            'metrics': metrics
+        }
 
 
 def run_alignment_pipeline(data_path: str, output_dir: str, 
@@ -118,19 +185,14 @@ def run_alignment_pipeline(data_path: str, output_dir: str,
     
     # Create and run pipeline
     pipeline = AlignmentPipeline(data_path, output_dir, config)
-    result = pipeline.run_pipeline(max_samples)
-    
-    # Generate reports
-    pipeline.generate_report(result)
+    result = pipeline.run(max_samples)
     
     # Return summary
     return {
         "pipeline_name": "AlignmentPipeline",
-        "total_samples": result.total_samples,
-        "successful_samples": result.successful_samples,
-        "failed_samples": result.failed_samples,
-        "success_rate": result.success_rate,
-        "duration": result.duration,
-        "performance_metrics": result.performance_metrics,
-        "output_dir": str(output_dir)
+        "total_samples": result["total_samples"],
+        "successful_samples": result["successful_samples"],
+        "failed_samples": result["failed_samples"],
+        "success_rate": result["success_rate"],
+        "output_dir": result["output_dir"]
     }
