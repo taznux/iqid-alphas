@@ -16,14 +16,13 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
+import time
 
-# Import core modules (will be implemented)
-# TODO: Implement iqid_alphas.core.coregistration module
-# from iqid_alphas.core.coregistration import MultiModalAligner
-# TODO: Implement iqid_alphas.core.validation module
-# from iqid_alphas.core.validation import ValidationSuite
-# TODO: Implement iqid_alphas.core.batch_processor module
-# from iqid_alphas.core.batch_processor import BatchProcessor
+# Import core modules
+from ..core.coregistration import MultiModalAligner, RegistrationMethod
+from ..core.validation import ValidationSuite, ValidationMode, ValidationResult
+from ..core.batch_processing import BatchProcessor
+from .base import BasePipeline
 
 
 @dataclass
@@ -47,7 +46,7 @@ class CoregistrationResult:
     visualization_paths: Optional[List[str]] = None
 
 
-class CoregistrationPipeline:
+class CoregistrationPipeline(BasePipeline):
     """
     Co-registration Pipeline for DataPush1 Dataset
     
@@ -69,22 +68,25 @@ class CoregistrationPipeline:
             pairing_strategy: Sample pairing strategy (automatic, manual, fuzzy_matching)
             config_path: Optional configuration file path
         """
-        self.data_path = Path(data_path)
-        self.output_dir = Path(output_dir)
+        super().__init__(data_path, output_dir, config_path)
+        
         self.registration_method = registration_method
         self.pairing_strategy = pairing_strategy
-        self.config_path = Path(config_path) if config_path else None
         
-        # Create output directory
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        # Map registration method strings to enums
+        method_mapping = {
+            "mutual_information": RegistrationMethod.MUTUAL_INFORMATION,
+            "feature_based": RegistrationMethod.FEATURE_BASED,
+            "intensity_based": RegistrationMethod.INTENSITY_BASED,
+            "hybrid": RegistrationMethod.HYBRID
+        }
         
-        # Setup logging
-        self.logger = self._setup_logging()
+        reg_method = method_mapping.get(registration_method.lower(), RegistrationMethod.MUTUAL_INFORMATION)
         
-        # TODO: Initialize core components
-        # self.aligner = MultiModalAligner(registration_method=self.registration_method)
-        # self.validator = ValidationSuite()
-        # self.batch_processor = BatchProcessor(str(self.data_path), str(self.output_dir))
+        # Initialize core components
+        self.aligner = MultiModalAligner(method=reg_method)
+        self.validator = ValidationSuite()
+        self.batch_processor = BatchProcessor(str(self.data_path), str(self.output_dir))
         
         # Results storage
         self.results: List[CoregistrationResult] = []
@@ -95,16 +97,7 @@ class CoregistrationPipeline:
         self.logger.info(f"Data path: {self.data_path}")
         self.logger.info(f"Output path: {self.output_dir}")
     
-    def _setup_logging(self) -> logging.Logger:
-        """Setup logging configuration"""
-        # TODO: Implement comprehensive logging setup
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        return logging.getLogger("CoregistrationPipeline")
-    
-    def run_evaluation(self, max_samples: Optional[int] = None) -> Dict:
+    def run(self, max_samples: Optional[int] = None) -> Dict:
         """
         Run complete co-registration evaluation pipeline
         
@@ -117,25 +110,17 @@ class CoregistrationPipeline:
         self.logger.info("Starting co-registration evaluation pipeline")
         
         try:
-            # TODO: Implement sample discovery and pairing
-            # iqid_samples = self.batch_processor.discover_iqid_samples()
-            # he_samples = self.batch_processor.discover_he_samples()
-            # sample_pairs = self._pair_samples(iqid_samples, he_samples)
-            # self.logger.info(f"Found {len(sample_pairs)} potential sample pairs")
+            # Discover and pair samples
+            sample_pairs = self._discover_samples()
+            self.logger.info(f"Found {len(sample_pairs)} potential sample pairs")
             
-            # TODO: Implement batch processing
-            # processed_pairs = 0
-            # for pair in sample_pairs:
-            #     if max_samples and processed_pairs >= max_samples:
-            #         break
-            #     
-            #     if pair['pairing_confidence'] > 0.7:  # Only process high-confidence pairs
-            #         result = self.process_paired_sample(pair['iqid_dir'], pair['he_dir'])
-            #         self.results.append(result)
-            #         processed_pairs += 1
-            
-            # TODO: Temporary placeholder implementation
-            self.logger.warning("TODO: Implement sample discovery and pairing")
+            # Process each sample pair
+            for sample in sample_pairs:
+                if max_samples and len(self.results) >= max_samples:
+                    break
+                
+                result = self._process_sample(sample)
+                self.results.append(result)
             
             # Generate summary statistics
             summary = self._generate_summary_stats()
@@ -149,6 +134,190 @@ class CoregistrationPipeline:
         except Exception as e:
             self.logger.error(f"Pipeline failed: {str(e)}")
             return {'error': str(e), 'status': 'failed'}
+    
+    def _discover_samples(self) -> List[Dict[str, str]]:
+        """Discover and pair iQID and H&E samples for coregistration."""
+        samples = []
+        
+        # Look for iQID data (assume it's in a subdirectory)
+        iqid_base = self.data_path / "iqid" if (self.data_path / "iqid").exists() else self.data_path
+        he_base = self.data_path / "he" if (self.data_path / "he").exists() else self.data_path
+        
+        # Find iQID directories
+        iqid_dirs = [d for d in iqid_base.iterdir() if d.is_dir()]
+        he_dirs = [d for d in he_base.iterdir() if d.is_dir()]
+        
+        # Simple pairing strategy - match by name similarity
+        for iqid_dir in iqid_dirs:
+            # Find corresponding H&E directory
+            he_dir = None
+            for he_candidate in he_dirs:
+                # Simple name matching - can be enhanced
+                if self._names_match(iqid_dir.name, he_candidate.name):
+                    he_dir = he_candidate
+                    break
+            
+            if he_dir:
+                samples.append({
+                    'id': f"{iqid_dir.name}_{he_dir.name}",
+                    'iqid_dir': iqid_dir,
+                    'he_dir': he_dir,
+                    'pairing_confidence': 0.8  # Mock confidence
+                })
+                
+        return samples
+    
+    def _names_match(self, name1: str, name2: str) -> bool:
+        """Simple name matching logic for sample pairing."""
+        # Extract base names (remove common suffixes/prefixes)
+        base1 = name1.lower().replace("iqid", "").replace("he", "").replace("_", "").replace("-", "")
+        base2 = name2.lower().replace("iqid", "").replace("he", "").replace("_", "").replace("-", "")
+        
+        # Check if they have significant overlap
+        if len(base1) > 3 and len(base2) > 3:
+            return base1 in base2 or base2 in base1
+        return base1 == base2
+    
+    def _process_sample(self, sample: Dict[str, Any]) -> ValidationResult:
+        """Process a single coregistration sample."""
+        sample_id = sample['id']
+        iqid_dir = sample['iqid_dir']
+        he_dir = sample['he_dir']
+        start_time = time.time()
+        
+        try:
+            self.logger.debug(f"Processing coregistration sample: {sample_id}")
+            
+            # Load image stacks
+            iqid_files = self._load_slice_stack(iqid_dir)
+            he_files = self._load_slice_stack(he_dir)
+            
+            if not iqid_files or not he_files:
+                raise ValueError(f"No images found in {iqid_dir} or {he_dir}")
+            
+            # Load first representative images for registration
+            iqid_image = self._load_image(iqid_files[0])
+            he_image = self._load_image(he_files[0])
+            
+            # Perform multi-modal registration
+            registration_result = self.aligner.register_images(he_image, iqid_image)
+            
+            # Calculate quality metrics
+            metrics = self._calculate_coregistration_metrics(
+                registration_result, len(iqid_files), len(he_files), sample_id
+            )
+            
+            # Create result
+            result = ValidationResult(
+                mode=ValidationMode.COREGISTRATION,
+                metrics=metrics,
+                processing_time=time.time() - start_time,
+                passed_tests=1 if registration_result.confidence > 0.5 else 0,
+                total_tests=1,
+                metadata={'sample_id': sample_id}
+            )
+            
+            # Add compatibility attributes
+            result.success = registration_result.confidence > 0.5
+            result.error_message = None
+            result.validation_type = "coregistration"
+            result.sample_id = sample_id
+            
+            # Add to_dict method
+            def to_dict(self):
+                return {
+                    'sample_id': getattr(self, 'sample_id', sample_id),
+                    'success': getattr(self, 'success', True),
+                    'metrics': dict(self.metrics),
+                    'processing_time': self.processing_time,
+                    'error_message': getattr(self, 'error_message', None),
+                    'validation_type': getattr(self, 'validation_type', 'coregistration')
+                }
+            result.to_dict = to_dict.__get__(result, type(result))
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to process coregistration sample {sample_id}: {e}")
+            result = ValidationResult(
+                mode=ValidationMode.COREGISTRATION,
+                metrics={},
+                processing_time=time.time() - start_time,
+                passed_tests=0,
+                total_tests=1,
+                errors=[str(e)],
+                metadata={'sample_id': sample_id}
+            )
+            
+            # Add compatibility attributes
+            result.success = False
+            result.error_message = str(e)
+            result.validation_type = "coregistration"
+            result.sample_id = sample_id
+            
+            def create_to_dict_method(error_msg, sid):
+                def to_dict(self):
+                    return {
+                        'sample_id': getattr(self, 'sample_id', sid),
+                        'success': getattr(self, 'success', False),
+                        'metrics': dict(self.metrics),
+                        'processing_time': self.processing_time,
+                        'error_message': getattr(self, 'error_message', error_msg),
+                        'validation_type': getattr(self, 'validation_type', 'coregistration')
+                    }
+                return to_dict
+            result.to_dict = create_to_dict_method(str(e), sample_id).__get__(result, type(result))
+            
+            return result
+    
+    def _load_slice_stack(self, directory: Path) -> List[Path]:
+        """Load slice stack file paths from directory."""
+        slice_files = list(directory.glob("*.png")) + list(directory.glob("*.tif"))
+        slice_files = sorted(slice_files)
+        return slice_files
+    
+    def _load_image(self, file_path: Path):
+        """Load a single image file."""
+        from ..utils.io import load_image
+        return load_image(file_path)
+    
+    def _calculate_coregistration_metrics(self, registration_result, iqid_count: int, he_count: int, sample_id: str) -> Dict[str, Any]:
+        """Calculate coregistration metrics."""
+        metrics = {
+            'iqid_slice_count': iqid_count,
+            'he_slice_count': he_count,
+            'registration_method': self.registration_method,
+            'processing_stage': 'coregistration'
+        }
+        
+        # Add registration-specific metrics
+        if hasattr(registration_result, 'confidence'):
+            metrics['registration_confidence'] = registration_result.confidence
+        
+        if hasattr(registration_result, 'mutual_information'):
+            metrics['mutual_information'] = registration_result.mutual_information
+        
+        if hasattr(registration_result, 'transform_matrix'):
+            # Extract transform parameters
+            transform = registration_result.transform_matrix
+            if transform is not None:
+                metrics['transform_determinant'] = float(np.linalg.det(transform[:2, :2]))
+                metrics['transform_scale'] = float(np.sqrt(np.sum(transform[:2, :2]**2)))
+        
+        return metrics
+
+    def run_evaluation(self, max_samples: Optional[int] = None) -> Dict:
+        """
+        Deprecated: Run complete co-registration evaluation pipeline
+        
+        Args:
+            max_samples: Maximum number of sample pairs to process
+            
+        Returns:
+            Dictionary containing evaluation results and summary statistics
+        """
+        self.logger.warning("run_evaluation is deprecated, use run instead")
+        return self.run(max_samples=max_samples)
     
     def process_paired_sample(self, iqid_dir: Path, he_dir: Path) -> CoregistrationResult:
         """

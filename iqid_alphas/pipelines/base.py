@@ -180,8 +180,7 @@ class BasePipeline(ABC):
         
         # Setup logging
         self.logger = setup_logging(
-            log_level=self.config.log_level,
-            verbose=self.config.verbose
+            level=self.config.log_level
         )
         
         # Initialize pipeline state
