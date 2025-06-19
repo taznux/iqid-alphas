@@ -12,16 +12,16 @@ from typing import Dict, List, Optional, Union, Any
 import numpy as np
 import cv2
 
-from .types import AlignmentMethod, ReferenceStrategy, AlignmentResult, StackAlignmentResult
-from .algorithms import (
+from ..types import AlignmentMethod, ReferenceStrategy, AlignmentResult, StackAlignmentResult
+from ..algorithms import (
     FeatureBasedAligner, 
     IntensityBasedAligner, 
     PhaseCorrelationAligner, 
     CoarseRotationAligner
 )
 from .stack import StackAligner
-from .utils import assemble_image_stack
-from ..mapping import ReverseMapper
+from ..utils import assemble_image_stack
+from ...mapping import ReverseMapper
 
 
 class EnhancedAligner:

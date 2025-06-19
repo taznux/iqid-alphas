@@ -10,8 +10,8 @@ from typing import List, Optional
 import numpy as np
 import cv2
 
-from .types import ReferenceStrategy, StackAlignmentResult
-from .algorithms import FeatureBasedAligner, IntensityBasedAligner, PhaseCorrelationAligner
+from ..types import ReferenceStrategy, StackAlignmentResult
+from ..algorithms import FeatureBasedAligner, IntensityBasedAligner, PhaseCorrelationAligner
 
 
 class StackAligner:

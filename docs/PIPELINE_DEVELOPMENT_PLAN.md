@@ -626,9 +626,9 @@ rm -rf evaluation/utils/
 # Keep only pipeline interfaces
 
 pipelines/
-├── raw_to_segmented.py
-├── segmented_to_aligned.py
-└── iqid_he_coregistration.py
+├── segmentation.py
+├── alignment.py
+└── coregistration.py
 ```
 
 ### 7.3 Backward Compatibility

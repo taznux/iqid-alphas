@@ -284,3 +284,99 @@ def save_text_file(content: str,
         f.write(content)
     
     return file_path
+
+
+def load_image(file_path: Union[str, Path], 
+               color_mode: str = 'unchanged') -> np.ndarray:
+    """
+    Load an image from file using OpenCV.
+    
+    Parameters
+    ----------
+    file_path : str or Path
+        Path to the image file
+    color_mode : str
+        Color mode for loading:
+        - 'unchanged': Load as-is (cv2.IMREAD_UNCHANGED)
+        - 'color': Load as color image (cv2.IMREAD_COLOR)
+        - 'grayscale': Load as grayscale (cv2.IMREAD_GRAYSCALE)
+    
+    Returns
+    -------
+    np.ndarray
+        Loaded image as numpy array
+        
+    Raises
+    ------
+    ValueError
+        If file cannot be loaded or does not exist
+    FileNotFoundError
+        If file does not exist
+    """
+    import cv2
+    
+    file_path = Path(file_path)
+    
+    if not file_path.exists():
+        raise FileNotFoundError(f"Image file not found: {file_path}")
+    
+    # Map color mode to OpenCV flags
+    mode_map = {
+        'unchanged': cv2.IMREAD_UNCHANGED,
+        'color': cv2.IMREAD_COLOR,
+        'grayscale': cv2.IMREAD_GRAYSCALE
+    }
+    
+    if color_mode not in mode_map:
+        raise ValueError(f"Invalid color_mode: {color_mode}. "
+                        f"Must be one of {list(mode_map.keys())}")
+    
+    # Load image
+    image = cv2.imread(str(file_path), mode_map[color_mode])
+    
+    if image is None:
+        raise ValueError(f"Could not load image from {file_path}. "
+                        "File may be corrupted or in unsupported format.")
+    
+    return image
+
+
+def save_image(image: np.ndarray,
+               file_path: Union[str, Path],
+               create_dirs: bool = True) -> Path:
+    """
+    Save an image to file using OpenCV.
+    
+    Parameters
+    ----------
+    image : np.ndarray
+        Image array to save
+    file_path : str or Path
+        Path where to save the image
+    create_dirs : bool
+        Whether to create parent directories if they don't exist
+        
+    Returns
+    -------
+    Path
+        Path object of the saved file
+        
+    Raises
+    ------
+    ValueError
+        If image cannot be saved
+    """
+    import cv2
+    
+    file_path = Path(file_path)
+    
+    if create_dirs:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Save image
+    success = cv2.imwrite(str(file_path), image)
+    
+    if not success:
+        raise ValueError(f"Could not save image to {file_path}")
+    
+    return file_path
